@@ -72,6 +72,8 @@ O projeto conta com uma interface gráfica completa e interativa para demonstra�
 streamlit run app.py
 ```
 
+Para publicar no Streamlit Community Cloud, o arquivo `packages.txt` instala a biblioteca de sistema `libgl1`, exigida pelo OpenCV, que é dependência da Ultralytics.
+
 A interface disponibiliza:
 1. **Visão Geral & Artigo SBC**: Fundamentação teórica, resumo da pesquisa e justificativas éticas.
 2. **Estúdio de Inferência**: Execução de vídeos/webcam com comparador lado a lado (**Com Velocidade** vs. **Sem Velocidade**) e ajuste em tempo real de limiares.
