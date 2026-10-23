@@ -8,12 +8,15 @@ def redimensionar_frame(frame: np.ndarray, largura_alvo: int = 1080) -> np.ndarr
     Padroniza a largura do frame para neutralizar disparidades de escala espacial (conforme metodologia do TCC).
     """
     altura_original, largura_original = frame.shape[:2]
-    if largura_original <= 0 or largura_original == largura_alvo:
+    if largura_original <= 0 or largura_alvo <= 0 or largura_original == largura_alvo:
         return frame
         
     proporcao = largura_alvo / largura_original
     altura_calculada = int(altura_original * proporcao)
     return cv2.resize(frame, (largura_alvo, altura_calculada))
+
+def _rotulo_id(obj_id) -> str:
+    return "?" if obj_id is None else str(obj_id)
 
 def desenhar_anotacoes(
     frame: np.ndarray,
@@ -30,6 +33,9 @@ def desenhar_anotacoes(
     """
     frame_desenho = frame.copy()
     eventos_detectados = []
+    posturas = [
+        analisar_postura(p["largura"], p["altura"], limiar_deitado=limiar_ar)[0] for p in dados_pessoas
+    ]
 
     # 1. Desenhar conexões de proximidade/aglomeração
     for interacao in alertas_interacoes:
@@ -51,11 +57,18 @@ def desenhar_anotacoes(
             1,
             cv2.LINE_AA
         )
+        pessoa_a = dados_pessoas[interacao["idx_a"]]
+        pessoa_b = dados_pessoas[interacao["idx_b"]]
+        if modo_velocidade:
+            velocidade_txt = f"{pessoa_a['velocidade']:.2f} e {pessoa_b['velocidade']:.2f} px/f"
+        else:
+            velocidade_txt = "Sem Velocidade"
         eventos_detectados.append({
             "tipo": "PROXIMIDADE",
-            "detalhes": f"Distancia: {dist:.1f}px entre alvos",
-            "postura": "N/A",
-            "velocidade": "N/A"
+            "ids": (pessoa_a["id"], pessoa_b["id"]),
+            "detalhes": f"Distancia: {dist:.1f}px entre IDs {_rotulo_id(pessoa_a['id'])} e {_rotulo_id(pessoa_b['id'])}",
+            "postura": f"{posturas[interacao['idx_a']]} e {posturas[interacao['idx_b']]}",
+            "velocidade": velocidade_txt
         })
 
     # 2. Desenhar cada pessoa detectada
@@ -64,7 +77,7 @@ def desenhar_anotacoes(
         largura = pessoa["largura"]
         altura = pessoa["altura"]
         velocidade = pessoa["velocidade"]
-        obj_id = pessoa["id"]
+        obj_id = _rotulo_id(pessoa["id"])
         trajetoria = pessoa.get("trajetoria", [])
 
         postura, ratio = analisar_postura(largura, altura, limiar_deitado=limiar_ar)
@@ -83,6 +96,7 @@ def desenhar_anotacoes(
             label_topo = f"ALERTA: QUEDA | ID {obj_id}"
             eventos_detectados.append({
                 "tipo": "QUEDA",
+                "id": pessoa["id"],
                 "detalhes": f"ID {obj_id} (AR: {ratio:.2f})",
                 "postura": postura,
                 "velocidade": f"{velocidade:.2f} px/f" if modo_velocidade else "Sem Velocidade"

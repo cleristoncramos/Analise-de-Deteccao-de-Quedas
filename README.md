@@ -4,45 +4,72 @@ Um sistema baseado em visão computacional para uma Prova de Conceito para o Tra
 
 Esse sistema usa o modelo YOLOv11 da Ultralytics para fazer analise de vídeos onde ocorrem situações de risco, como quedas e proximidade.
 
-Ele é composto por um arquivo base que foi a primeira idealização do projeto no qual era usado no Google Colab para execução que posteriormente foi passado para desenvolvimento local para menor gargalo de performance. Onde foi criado os modelos "Sem Velocidade" e o "Com Velocidade" que possui uma trava de segurança para servir de prova no artigo escrito.
+A primeira versão do projeto (rodada no Google Colab) e os modelos "Sem Velocidade" e "Com Velocidade" usados nos experimentos do artigo estão em `legado/`. O pipeline atual fica em `core/` e é compartilhado pela linha de comando (`cli.py`) e pela interface web (`app.py`).
 
-Para executar o código é preciso baixar a biblioteca da Ultralytics:
+## Instalação
 
+```bash
+python -m venv .venv
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+# Linux / macOS
+source .venv/bin/activate
+
+pip install -r requirements.txt
 ```
-pip install ultralytics openCV-python numpy
+
+Os pesos (`yolo11n.pt` … `yolo11x.pt`) são procurados em `modelos/` e na raiz do projeto; se não existirem, a Ultralytics baixa os oficiais automaticamente.
+
+## Linha de comando
+
+```bash
+# Proposta: postura + velocidade
+python cli.py --SOURCE videos/queda_01.mp4 --MODEL yolo11s.pt --MODO com
+# Linha de base: apenas postura
+python cli.py --SOURCE videos/queda_01.mp4 --MODEL yolo11s.pt --MODO sem
+# Webcam
+python cli.py --SOURCE 0 --MODEL yolo11n.pt
 ```
 
-E para execução em lote com vários vídeos use o código abaixo:
+Os relatórios CSV são gravados em `relatorios/<video>/<modelo>/`. Opções úteis (`python cli.py --help` lista todas):
 
-```
-$modelos = @(
-    "modelos\yolo11n.pt",
-    "modelos\yolo11s.pt",
-    "modelos\yolo11m.pt",
-    "modelos\yolo11l.pt",
-    "modelos\yolo11x.pt"
-)
+- `--SEM-JANELA`: processa sem abrir a janela de vídeo (mais rápido em lote).
+- `--POR-FRAME`: registra todo frame que satisfaz a heurística, como nos scripts originais. Por padrão, a mesma pessoa (ou dupla, na proximidade) só gera um novo evento depois de `--CARENCIA` segundos (padrão 2 s).
+- `--SEM-CORRECAO-FPS`: usa a velocidade em pixels por frame sem converter para a referência de 30 FPS.
 
-$videos = Get-ChildItem "videos\*.mp4"
+Execução em lote (PowerShell):
 
-foreach ($video in $videos) {
-    Write-Host "Iniciando análise do vídeo: $($video.FullName)" -ForegroundColor Green
-
+```powershell
+$modelos = @("yolo11n.pt", "yolo11s.pt", "yolo11m.pt", "yolo11l.pt", "yolo11x.pt")
+foreach ($video in Get-ChildItem "videos\*.mp4") {
     foreach ($modelo in $modelos) {
-        python main.py --SOURCE $video.FullName --MODEL $modelo
+        foreach ($modo in @("com", "sem")) {
+            python cli.py --SOURCE $video.FullName --MODEL $modelo --MODO $modo --SEM-JANELA
+        }
     }
 }
 ```
 
-Ps. Lembre-se colocar os vídeos na pasta de vídeos, já as pastas de relatórios e modelos o próprio código cria.
+Equivalente em bash:
+
+```bash
+for video in videos/*.mp4; do
+  for modelo in yolo11n.pt yolo11s.pt yolo11m.pt yolo11l.pt yolo11x.pt; do
+    for modo in com sem; do
+      python cli.py --SOURCE "$video" --MODEL "$modelo" --MODO "$modo" --SEM-JANELA
+    done
+  done
+done
+```
+
+Os scripts originais continuam em `legado/` e devem ser executados de dentro da própria pasta (ex.: `cd legado/modelo_com_velocidade && python main.py --SOURCE ../../videos/x.mp4 --MODEL ../../modelos/yolo11s.pt`).
 
 ## Executando a Interface Web (Streamlit)
 
 O projeto conta com uma interface gráfica completa e interativa para demonstração e análise científica dos resultados do TCC:
 
-```powershell
-# Ativar o ambiente virtual e iniciar a aplicação
-.\.venv\Scripts\streamlit run app.py
+```bash
+streamlit run app.py
 ```
 
 A interface disponibiliza:
@@ -51,3 +78,13 @@ A interface disponibiliza:
 3. **Dashboard Científico**: Visualização interativa das métricas empíricas consolidadas (Tabelas 1 a 4 do artigo), matrizes de confusão e gráficos comparativos no Plotly.
 4. **Auditoria & Logs**: Registro detalhado das ocorrências com exportação para CSV, Excel e PDF técnico.
 5. **Laboratório Experimental**: Simulação da velocidade normalizada para mitigação do Eixo Z e conceitos de Pose Estimation.
+
+## Testes
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+ruff check .
+```
+
+Os testes cobrem as heurísticas, o rastreador, o agrupamento de eventos e a consistência das métricas em `data/tcc_benchmark_data.json`. O GitHub Actions roda os dois comandos a cada push e pull request.

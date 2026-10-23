@@ -7,15 +7,15 @@ import detector
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sistema de Monitoramento")
-    parser.add_argument('--SOURCE', type=str, default='videos\\vid_3.mp4', help='Caminho do video ou 0 para webcam')
-    parser.add_argument('--MODEL', type=str, default='modelos\\yolo26n.pt', help='Caminho do modelo YOLO')
+    parser.add_argument('--SOURCE', type=str, default=os.path.join('videos', 'vid_3.mp4'), help='Caminho do video ou 0 para webcam')
+    parser.add_argument('--MODEL', type=str, default=os.path.join('modelos', 'yolo11n.pt'), help='Caminho do modelo YOLO')
 
     return parser.parse_args()
 
 def main():
     args = parse_args()
 
-    modelo = detector.inicializar_modelo()
+    modelo = detector.inicializar_modelo(args.MODEL)
     
     source = int(args.SOURCE) if args.SOURCE == '0' else args.SOURCE
     if isinstance(source, str):

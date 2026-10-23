@@ -1,6 +1,4 @@
 import streamlit as st
-import json
-import os
 
 def render_visao_geral():
     st.title("🛡️ Sistema de Análise e Detecção de Quedas")
@@ -100,7 +98,7 @@ def render_visao_geral():
             st.markdown("""
             **2. UR Fall Detection Dataset**
             - Benchmark científico consolidado da literatura.
-            - 30 eventos de quedas e Atividades de Vida Diária (ADL) capturados por Kinect.
+            - 30 quedas e 30 Atividades de Vida Diária (ADL) capturadas por Kinect.
             """)
         with col_d3:
             st.markdown("""

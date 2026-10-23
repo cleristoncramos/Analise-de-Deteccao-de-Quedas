@@ -1,3 +1,4 @@
+import os
 from ultralytics import YOLO
 
 """"
@@ -9,7 +10,7 @@ Usar apenas quando tiver placa RTX
 #     print("[INFO] Carregando modelo YOLO...")
 #     return YOLO(caminho_pesos).to(dispositivo)
 
-def inicializar_modelo(caminho_pesos='modelos\\yolo11n.pt'):
+def inicializar_modelo(caminho_pesos=os.path.join('modelos', 'yolo11n.pt')):
     print("[INFO] Carregando modelo YOLO...")
     return YOLO(caminho_pesos)
 

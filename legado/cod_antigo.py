@@ -10,8 +10,8 @@ from ultralytics import YOLO
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sistema de Monitoramento Escolar - TCC")
-    parser.add_argument('--SOURCE', type=str, default='videos\\pessoas_andando.mp4', help='Caminho do vídeo ou 0 para webcam')
-    parser.add_argument('--MODEL', type=str, default='models\\yolo11x.pt', help='Nome do arquivo do modelo YOLO')
+    parser.add_argument('--SOURCE', type=str, default=os.path.join('videos', 'pessoas_andando.mp4'), help='Caminho do vídeo ou 0 para webcam')
+    parser.add_argument('--MODEL', type=str, default=os.path.join('modelos', 'yolo11x.pt'), help='Nome do arquivo do modelo YOLO')
     parser.add_argument('--THRESHOLD', type=int, default=10, help='Limite de pessoas para aglomeração')
     parser.add_argument('--ROI', type=str, default=None, help='ROI como x1,y1,x2,y2')
     return parser.parse_args()
@@ -25,7 +25,8 @@ def main():
     print(f"[INFO] Carregando modelo YOLO {nome_base}")
     model = YOLO(args.MODEL)
 
-    arquivo_log = open(f'relatorio_ocorrencias_{nome_base}_{nome_modelo}.csv', mode='w', newline='', encoding='utf-8')
+    nome_log = f'relatorio_ocorrencias_{nome_base}_{nome_modelo}.csv'
+    arquivo_log = open(nome_log, mode='w', newline='', encoding='utf-8')
     escritor_log = csv.writer(arquivo_log)
     escritor_log.writerow(['Data_Hora', 'Tipo_Evento', 'Detalhes'])
 
@@ -79,6 +80,8 @@ def main():
 
                 width = x2 - x1
                 height = y2 - y1
+                if width <= 0:
+                    continue
                 ratio = height / width
 
                 if ratio < 0.75:
@@ -110,7 +113,7 @@ def main():
     cap.release()
     arquivo_log.close()
     cv2.destroyAllWindows()
-    print("[INFO] Processamento finalizado. Logs salvos em 'relatorio_ocorrencias.csv'")
+    print(f"[INFO] Processamento finalizado. Logs salvos em '{nome_log}'")
 
 if __name__ == '__main__':
-    main()
+    main()

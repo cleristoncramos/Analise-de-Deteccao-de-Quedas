@@ -1,23 +1,27 @@
 """
 Módulo Core para o Sistema de Detecção e Análise de Quedas (TCC - UFPI).
+
+O motor YOLO (`core.yolo_engine`) e o desenho (`core.video_processor`) não são
+importados aqui para que as heurísticas possam ser usadas e testadas sem
+Ultralytics/PyTorch/OpenCV instalados.
 """
+from .eventos import AgrupadorEventos, chave_evento
 from .heuristics import (
+    analisar_interacoes,
     analisar_postura,
+    calcular_velocidade_normalizada,
     classificar_acao,
     confirmar_queda,
-    analisar_interacoes,
-    calcular_velocidade_normalizada
 )
 from .tracker import PersonTracker
-from .yolo_engine import carregar_modelo, processar_frame_detector
 
 __all__ = [
+    "AgrupadorEventos",
+    "PersonTracker",
+    "analisar_interacoes",
     "analisar_postura",
+    "calcular_velocidade_normalizada",
+    "chave_evento",
     "classificar_acao",
     "confirmar_queda",
-    "analisar_interacoes",
-    "calcular_velocidade_normalizada",
-    "PersonTracker",
-    "carregar_modelo",
-    "processar_frame_detector",
 ]

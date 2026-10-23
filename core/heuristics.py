@@ -72,10 +72,10 @@ def analisar_interacoes(centros: List[Tuple[int, int]], distancia_minima: float 
 
 def calcular_velocidade_normalizada(velocidade: float, largura: float, altura: float) -> float:
     """
-    Normaliza a velocidade pela diagonal da bounding box para atenuar a perda de escala no Eixo Z.
-    v_norm = (v / diagonal) * 100
+    Normaliza a velocidade pela escala da bounding box para atenuar a perda de escala no Eixo Z.
+    v_norm = (v / sqrt(w * h)) * 100
     """
-    diagonal = math.sqrt(largura ** 2 + altura ** 2)
-    if diagonal <= 0:
+    area = largura * altura
+    if area <= 0:
         return 0.0
-    return (velocidade / diagonal) * 100.0
+    return (velocidade / math.sqrt(area)) * 100.0

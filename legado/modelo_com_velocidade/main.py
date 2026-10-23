@@ -8,8 +8,8 @@ import analisador_movimento
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sistema de Monitoramento")
-    parser.add_argument('--SOURCE', type=str, default='videos\\pessoas_andando.mp4', help='Caminho do video ou 0 para webcam')
-    parser.add_argument('--MODEL', type=str, default='modelos\\yolo26n.pt', help='Caminho do modelo YOLO')
+    parser.add_argument('--SOURCE', type=str, default=os.path.join('videos', 'pessoas_andando.mp4'), help='Caminho do video ou 0 para webcam')
+    parser.add_argument('--MODEL', type=str, default=os.path.join('modelos', 'yolo11n.pt'), help='Caminho do modelo YOLO')
     return parser.parse_args()
 
 def main():
@@ -77,7 +77,7 @@ def main():
             if alerta_queda:
                 cor = (0, 0, 255)
                 texto_tela = "ALERTA: QUEDA"
-                logger.registrar_evento(escritor_log, numero_frame, "QUEDA", "Deteccao de queda", postura, acao)
+                logger.registrar_evento(escritor_log, numero_frame, "QUEDA", f"Deteccao de queda ({acao})", postura, vel_formatada)
             else:
                 cor = (255, 0, 0)
 

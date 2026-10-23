@@ -8,7 +8,11 @@
     ],
     "instituicao": "Centro de Educação Aberta e a Distância -- Universidade Federal do Piauí (UFPI)",
     "paradigma_avaliacao": "Event-Level Evaluation",
-    "total_eventos": 79
+    "total_eventos": 79,
+    "pendencias": [
+      "YOLOv11x (Com Velocidade) soma 80 eventos: na Tabela 1 tem 17 eventos simulados (10 negativos) enquanto os demais modelos têm 16 (9 negativos). Conferir a contagem original.",
+      "Sem Velocidade (YOLOv11m*) soma 91 eventos (53 negativos contra 41 nos demais): os falsos alarmes parecem ter sido contados como eventos novos. Para comparar acurácia entre cenários, os dois devem usar o mesmo conjunto de eventos reais."
+    ]
   },
   "tabela_1_simulado": [
     {"cenario": "Com Velocidade", "modelo": "YOLOv11n", "tn": 2, "fp": 7, "fn": 4, "tp": 3, "acuracia": 0.312, "precisao": 0.300, "recall": 0.428, "f1_score": 0.352},
@@ -33,8 +37,8 @@
   "tabela_4_geral": [
     {"cenario": "Com Velocidade", "modelo": "YOLOv11n", "tn": 34, "fp": 7, "fn": 23, "tp": 15, "acuracia": 0.620, "precisao": 0.681, "recall": 0.394, "f1_score": 0.500},
     {"cenario": "Com Velocidade", "modelo": "YOLOv11s", "tn": 34, "fp": 7, "fn": 16, "tp": 22, "acuracia": 0.708, "precisao": 0.758, "recall": 0.578, "f1_score": 0.656},
-    {"cenario": "Com Velocidade", "modelo": "YOLOv11m", "tn": 34, "fp": 6, "fn": 18, "tp": 20, "acuracia": 0.696, "precisao": 0.769, "recall": 0.526, "f1_score": 0.625},
-    {"cenario": "Com Velocidade", "modelo": "YOLOv11l", "tn": 35, "fp": 6, "fn": 18, "tp": 17, "acuracia": 0.658, "precisao": 0.739, "recall": 0.447, "f1_score": 0.557},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11m", "tn": 35, "fp": 6, "fn": 18, "tp": 20, "acuracia": 0.696, "precisao": 0.769, "recall": 0.526, "f1_score": 0.625},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11l", "tn": 35, "fp": 6, "fn": 21, "tp": 17, "acuracia": 0.658, "precisao": 0.739, "recall": 0.447, "f1_score": 0.557},
     {"cenario": "Com Velocidade", "modelo": "YOLOv11x", "tn": 33, "fp": 9, "fn": 20, "tp": 18, "acuracia": 0.637, "precisao": 0.666, "recall": 0.473, "f1_score": 0.553},
     {"cenario": "Sem Velocidade", "modelo": "YOLOv11m*", "tn": 31, "fp": 22, "fn": 12, "tp": 26, "acuracia": 0.626, "precisao": 0.541, "recall": 0.684, "f1_score": 0.604}
   ]

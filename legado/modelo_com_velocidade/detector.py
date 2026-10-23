@@ -1,3 +1,4 @@
+import os
 import math
 from ultralytics import YOLO
 
@@ -5,7 +6,7 @@ from ultralytics import YOLO
 #     print("[INFO] Carregando modelo YOLO...")
 #     return YOLO(caminho_pesos).to(dispositivo)
 
-def inicializar_modelo(caminho_pesos='modelos\\yolo26m.pt'):
+def inicializar_modelo(caminho_pesos=os.path.join('modelos', 'yolo11n.pt')):
     print("[INFO] Carregando modelo YOLO...")
     return YOLO(caminho_pesos)
 

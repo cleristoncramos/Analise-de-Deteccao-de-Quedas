@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
+from core.heuristics import calcular_velocidade_normalizada
+
 def render_laboratorio_experimental():
     st.title("🧪 Laboratório Experimental: Trabalhos Futuros")
     st.caption("Investigação e prototipagem de soluções para as limitações identificadas no TCC (Eixo Z e Pose Estimation)")
@@ -47,9 +49,8 @@ def render_laboratorio_experimental():
         with col_s2:
             velocidade_bruta = st.slider("Velocidade Bruta em Pixels (v)", 1.0, 50.0, 10.0, 0.5)
             
-            # Cálculo normalizado
-            area_bbox = max(1.0, float(largura_bbox * altura_bbox))
-            v_norm = (velocidade_bruta / np.sqrt(area_bbox)) * 100.0
+            # Cálculo normalizado (mesma fórmula do pipeline em core/heuristics.py)
+            v_norm = calcular_velocidade_normalizada(velocidade_bruta, largura_bbox, altura_bbox)
 
             st.metric("Velocidade Normalizada (v_norm)", f"{v_norm:.2f}% / f")
 
@@ -73,7 +74,7 @@ def render_laboratorio_experimental():
         # Gráfico de sensibilidade
         alturas_range = np.linspace(30, 500, 100)
         v_pixels_fixa = 12.0
-        v_norms = [(v_pixels_fixa / np.sqrt(h * (h * 0.45))) * 100 for h in alturas_range]
+        v_norms = [calcular_velocidade_normalizada(v_pixels_fixa, h * 0.45, h) for h in alturas_range]
 
         fig_sens = go.Figure()
         fig_sens.add_trace(go.Scatter(
@@ -94,7 +95,7 @@ def render_laboratorio_experimental():
             height=320,
             margin=dict(l=30, r=30, t=50, b=30)
         )
-        st.plotly_chart(fig_sens, use_container_width=True)
+        st.plotly_chart(fig_sens)
 
     with tab_pose:
         st.subheader("2. Transição para Pose Estimation (YOLO11-Pose)")

@@ -36,7 +36,7 @@ def carregar_modelo(caminho_ou_nome: str, dispositivo: Optional[str] = None) -> 
     Carrega o modelo YOLO na memória com opção de acelerador CPU ou GPU.
     """
     caminho = obter_caminho_modelo(caminho_ou_nome)
-    
+
     if dispositivo is None:
         dispositivo = "cuda:0" if torch.cuda.is_available() else "cpu"
         
@@ -46,6 +46,16 @@ def carregar_modelo(caminho_ou_nome: str, dispositivo: Optional[str] = None) -> 
         modelo.to(dispositivo)
         
     return modelo
+
+def reiniciar_rastreamento(modelo: YOLO) -> None:
+    """
+    Zera o estado do rastreador interno do Ultralytics (IDs e filtros de Kalman).
+    Com `track(persist=True)` esse estado sobrevive entre chamadas, então deve
+    ser zerado antes de começar um vídeo novo.
+    """
+    predictor = getattr(modelo, "predictor", None)
+    for rastreador in getattr(predictor, "trackers", None) or []:
+        rastreador.reset()
 
 def processar_frame_detector(
     modelo: YOLO,
@@ -67,31 +77,27 @@ def processar_frame_detector(
     track_ids = []
 
     if resultado.boxes is not None and len(resultado.boxes) > 0:
-        for idx, r in enumerate(resultado.boxes):
+        for r in resultado.boxes:
             cls = int(r.cls[0])
             if cls == 0:  # Classe Pessoa (COCO)
-                box = r.xyxy[0].cpu().numpy().tolist()
-                boxes_pessoas.append(box)
-
-                # Se houver IDs de rastreamento nativos
-                if r.id is not None:
-                    track_ids.append(int(r.id[0]))
-                else:
-                    track_ids.append(idx + 1)
+                boxes_pessoas.append(r.xyxy[0].cpu().numpy().tolist())
+                # Sem ID nativo do rastreador, a pessoa fica sem identidade (None)
+                # em vez de receber um número que pode colidir com outro ID real
+                track_ids.append(int(r.id[0]) if r.id is not None else None)
 
     if tracker is not None and usar_tracking:
         return tracker.atualizar(boxes_pessoas, track_ids)
 
     # Modo sem tracking: retorna apenas centroides estáticos
     resultados = []
-    for idx, box in enumerate(boxes_pessoas):
+    for box in boxes_pessoas:
         x1, y1, x2, y2 = box
         largura = max(0.0, float(x2 - x1))
         altura = max(0.0, float(y2 - y1))
         cx = int((x1 + x2) / 2)
         cy = int((y1 + y2) / 2)
         resultados.append({
-            "id": idx + 1,
+            "id": None,
             "box": [float(x1), float(y1), float(x2), float(y2)],
             "largura": largura,
             "altura": altura,
