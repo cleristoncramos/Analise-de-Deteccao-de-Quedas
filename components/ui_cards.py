@@ -3,21 +3,18 @@ from typing import Optional
 
 def render_metric_card(titulo: str, valor: str, subtitulo: str = "", delta: Optional[str] = None, delta_color: str = "normal"):
     """
-    Renderiza um card visual de métrica com bordas arredondadas e estética refinada.
+    Renderiza um card de métrica com cantos retos e borda fina.
     """
     card_html = f"""
     <div style="
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 12px;
-        padding: 16px 20px;
+        background: #fbfaf7;
+        border: 1px solid #2b2b2b;
+        padding: 14px 18px;
         margin-bottom: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(8px);
     ">
-        <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">{titulo}</div>
-        <div style="font-size: 1.85rem; color: #f8fafc; font-weight: 700; margin: 4px 0;">{valor}</div>
-        <div style="font-size: 0.80rem; color: #64748b;">{subtitulo}</div>
+        <div style="font-size: 0.78rem; color: #4a4a46; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">{titulo}</div>
+        <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.75rem; color: #1f3a5f; font-weight: 600; margin: 4px 0;">{valor}</div>
+        <div style="font-size: 0.80rem; color: #4a4a46;">{subtitulo}</div>
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
@@ -27,26 +24,23 @@ def render_alert_banner(tipo: str, mensagem: str):
     Renderiza banners de notificação com estilo de alerta.
     """
     cores = {
-        "QUEDA": {"bg": "rgba(239, 68, 68, 0.15)", "border": "#ef4444", "text": "#fca5a5", "icon": "🚨"},
-        "PROXIMIDADE": {"bg": "rgba(245, 158, 11, 0.15)", "border": "#f59e0b", "text": "#fcd34d", "icon": "⚠️"},
-        "INFO": {"bg": "rgba(59, 130, 246, 0.15)", "border": "#3b82f6", "text": "#93c5fd", "icon": "ℹ️"},
-        "SUCESSO": {"bg": "rgba(34, 197, 94, 0.15)", "border": "#22c55e", "text": "#86efac", "icon": "✅"}
+        "QUEDA": {"bg": "rgba(123, 45, 38, 0.08)", "border": "#7b2d26", "text": "#5e211c", "rotulo": "Queda"},
+        "PROXIMIDADE": {"bg": "rgba(154, 123, 47, 0.10)", "border": "#9a7b2f", "text": "#5f4b1b", "rotulo": "Proximidade"},
+        "INFO": {"bg": "rgba(31, 58, 95, 0.07)", "border": "#1f3a5f", "text": "#1f3a5f", "rotulo": "Informação"},
+        "SUCESSO": {"bg": "rgba(79, 109, 90, 0.10)", "border": "#4f6d5a", "text": "#34493c", "rotulo": "Sucesso"}
     }
     estilo = cores.get(tipo.upper(), cores["INFO"])
     banner_html = f"""
     <div style="
         background: {estilo['bg']};
+        border: 1px solid {estilo['border']};
         border-left: 4px solid {estilo['border']};
-        border-radius: 8px;
-        padding: 12px 16px;
+        padding: 10px 14px;
         margin: 10px 0;
         color: {estilo['text']};
         font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
     ">
-        <span style="font-size: 1.25rem;">{estilo['icon']}</span>
+        <b style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; margin-right: 8px;">{estilo['rotulo']}</b>
         <span>{mensagem}</span>
     </div>
     """

@@ -1,70 +1,425 @@
-/* Estilos Customizados para o Sistema de Detecção de Quedas - TCC UFPI */
+/* Estilos do Sistema de Detecção de Quedas - TCC UFPI
+   Visual acadêmico: fundo papel, tinta escura, cantos retos e bordas finas. */
 
-/* Container geral e espaçamento */
-.main .block-container {
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap');
+
+:root {
+    --papel: #f5f3ee;
+    --papel-escuro: #ebe7de;
+    --tinta: #1d1d1b;
+    --tinta-suave: #4a4a46;
+    --borda: #2b2b2b;
+    --borda-discreta: rgba(29, 29, 27, 0.35);
+    --marinho: #1f3a5f;
+    --vinho: #7b2d26;
+    --ocre: #9a7b2f;
+    --verde: #4f6d5a;
+}
+
+/* Cantos retos em todos os elementos */
+*, *::before, *::after {
+    border-radius: 0 !important;
+}
+
+html, body, .stMarkdown, p, li, label, button, input, textarea {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* Mantém a fonte dos ícones Material usados nos botões */
+[data-testid="stIconMaterial"] {
+    font-family: 'Material Symbols Rounded' !important;
+}
+
+/* Container geral */
+.main .block-container, [data-testid="stMainBlockContainer"] {
     padding-top: 2rem;
     padding-bottom: 3rem;
     max-width: 1200px;
 }
 
-/* Títulos com gradiente moderno */
+/* Títulos */
+h1, h2, h3, h4 {
+    font-family: 'Source Serif 4', Georgia, serif !important;
+    color: var(--tinta) !important;
+    letter-spacing: -0.005em;
+}
+
 h1 {
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.02em;
+    font-weight: 700 !important;
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.35rem !important;
 }
 
 h2, h3 {
-    color: #e2e8f0 !important;
     font-weight: 600 !important;
-    letter-spacing: -0.01em;
 }
 
-/* Badges e tags */
+[data-testid="stCaptionContainer"], .stCaption {
+    color: var(--tinta-suave) !important;
+}
+
+/* Divisores finos entre seções */
+hr, [data-testid="stDivider"] hr {
+    border: none !important;
+    border-top: 1px solid var(--borda) !important;
+    opacity: 1 !important;
+    margin: 1.4rem 0 !important;
+}
+
+/* Abas */
+.stTabs [data-baseweb="tab-list"] {
+    border-bottom: 1px solid var(--borda);
+    gap: 0;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border: 1px solid transparent;
+    border-bottom: none;
+    padding: 0.4rem 1rem;
+}
+
+.stTabs [aria-selected="true"] {
+    border-color: var(--borda);
+    background: var(--papel-escuro);
+}
+
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: var(--marinho);
+}
+
+/* Métricas */
+[data-testid="stMetric"] {
+    background: #fbfaf7;
+    border: 1px solid var(--borda);
+    padding: 0.75rem 1rem;
+}
+
+[data-testid="stMetricValue"] {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.7rem !important;
+    font-weight: 600 !important;
+    color: var(--marinho) !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--tinta-suave) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem !important;
+}
+
+/* Alertas, expansores, tabelas, gráficos e caixas */
+.stAlert, [data-testid="stAlert"] > div,
+[data-testid="stExpander"] details,
+.stDataFrame, [data-testid="stDataFrame"], [data-testid="stTable"],
+[data-testid="stPlotlyChart"],
+[data-testid="stFileUploaderDropzone"] {
+    border: 1px solid var(--borda) !important;
+}
+
+[data-testid="stPlotlyChart"] {
+    background: #fbfaf7;
+    padding: 0.25rem;
+}
+
+/* Botões */
+.stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {
+    border: 1px solid var(--borda) !important;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {
+    background: var(--marinho) !important;
+    color: #f5f3ee !important;
+}
+
+.stButton > button[kind="primary"]:hover {
+    background: #16304f !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    border-right: 1px solid var(--borda);
+}
+
+section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
+    font-size: 1.05rem !important;
+    border-bottom: 1px solid var(--borda-discreta);
+    padding-bottom: 0.3rem;
+}
+
+.sidebar-marca {
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.sidebar-marca .titulo {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--tinta);
+    line-height: 1.2;
+}
+
+.sidebar-marca .sub {
+    font-size: 0.75rem;
+    color: var(--tinta-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+}
+
+.sidebar-rodape {
+    font-size: 0.75rem;
+    color: var(--tinta-suave);
+    line-height: 1.5;
+    border-top: 1px solid var(--borda-discreta);
+    padding-top: 0.6rem;
+}
+
+/* Badges */
 .status-badge {
     display: inline-block;
-    padding: 4px 10px;
-    border-radius: 9999px;
-    font-size: 0.75rem;
+    padding: 2px 8px;
+    font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
+    border: 1px solid currentColor;
 }
 
-.badge-risk {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.4);
+.badge-risk { color: var(--vinho); background: rgba(123, 45, 38, 0.08); }
+.badge-safe { color: var(--verde); background: rgba(79, 109, 90, 0.08); }
+.badge-warning { color: var(--ocre); background: rgba(154, 123, 47, 0.08); }
+
+/* ---------- Página inicial e informações acadêmicas ---------- */
+
+.faixa-institucional {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.5rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--tinta-suave);
 }
 
-.badge-safe {
-    background-color: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
-    border: 1px solid rgba(34, 197, 94, 0.4);
+.hero {
+    border-bottom: 1px solid var(--borda);
+    padding: 2.5rem 0 2rem 0;
 }
 
-.badge-warning {
-    background-color: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.4);
+.hero .rotulo {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--vinho);
+    font-weight: 600;
 }
 
-/* Estilização de tabelas e dataframes */
-.stDataFrame {
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.hero .nome {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--tinta);
+    margin: 0.5rem 0 0.9rem 0;
 }
 
-/* Estilo para caixas de código e notas */
-.stAlert {
-    border-radius: 10px !important;
+.hero .frase {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--marinho);
+    max-width: 46rem;
+    line-height: 1.45;
 }
 
-/* Efeito de destaque para métricas */
-div[data-testid="stMetricValue"] {
-    font-size: 1.8rem !important;
-    font-weight: 700 !important;
-    color: #38bdf8 !important;
+.hero .descricao {
+    margin-top: 0.9rem;
+    color: var(--tinta-suave);
+    max-width: 46rem;
+    line-height: 1.6;
+}
+
+.secao-titulo {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--tinta);
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.3rem;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.secao-titulo .numero {
+    color: var(--vinho);
+    margin-right: 0.5rem;
+}
+
+.cartao {
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+    padding: 1rem 1.1rem;
+    min-height: 11.5rem;
+}
+
+.cartao .etapa {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--vinho);
+    font-weight: 600;
+}
+
+.cartao .titulo {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.3rem 0 0.4rem 0;
+    color: var(--tinta);
+}
+
+.cartao .texto {
+    font-size: 0.9rem;
+    color: var(--tinta-suave);
+    line-height: 1.55;
+}
+
+.numeros {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+}
+
+.numeros > div {
+    padding: 0.9rem 1rem;
+    border-right: 1px solid var(--borda-discreta);
+}
+
+.numeros > div:last-child { border-right: none; }
+
+.numeros .valor {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--marinho);
+}
+
+.numeros .legenda {
+    font-size: 0.78rem;
+    color: var(--tinta-suave);
+}
+
+.passos {
+    counter-reset: passo;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+}
+
+.passos li {
+    counter-increment: passo;
+    padding: 0.7rem 1rem 0.7rem 3.2rem;
+    border-bottom: 1px solid var(--borda-discreta);
+    position: relative;
+    line-height: 1.5;
+}
+
+.passos li:last-child { border-bottom: none; }
+
+.passos li::before {
+    content: counter(passo, decimal-leading-zero);
+    position: absolute;
+    left: 1rem;
+    top: 0.7rem;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    color: var(--vinho);
+}
+
+.legenda-figura {
+    font-size: 0.8rem;
+    color: var(--tinta-suave);
+    border-top: 1px solid var(--borda-discreta);
+    padding-top: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.cabecalho-academico {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    border-top: 3px double var(--borda);
+    border-bottom: 3px double var(--borda);
+    padding: 1rem 0.5rem;
+    background: #fbfaf7;
+}
+
+.cabecalho-academico img { display: block; }
+.cabecalho-academico .logo-ufpi { height: 96px; }
+.cabecalho-academico .logo-cead { height: 72px; }
+
+.cabecalho-academico .centro {
+    text-align: center;
+    flex: 1;
+}
+
+.cabecalho-academico .centro .linha1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.cabecalho-academico .centro .linha2 {
+    font-size: 0.85rem;
+    color: var(--tinta-suave);
+    margin-top: 0.2rem;
+}
+
+.ficha {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+    font-size: 0.93rem;
+}
+
+.ficha th, .ficha td {
+    border: 1px solid var(--borda-discreta);
+    padding: 0.55rem 0.8rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ficha th {
+    width: 30%;
+    background: var(--papel-escuro);
+    font-weight: 600;
+    color: var(--tinta);
+}
+
+.rodape {
+    border-top: 1px solid var(--borda);
+    margin-top: 2.5rem;
+    padding-top: 0.8rem;
+    font-size: 0.78rem;
+    color: var(--tinta-suave);
+    display: flex;
+    justify-content: space-between;
+}
+
+@media (max-width: 760px) {
+    .numeros { grid-template-columns: repeat(2, 1fr); }
+    .hero .nome { font-size: 2rem; }
+    .cabecalho-academico { flex-direction: column; }
 }

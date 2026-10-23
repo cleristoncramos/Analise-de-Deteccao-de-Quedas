@@ -5,12 +5,12 @@ import plotly.graph_objects as go
 from core.heuristics import calcular_velocidade_normalizada
 
 def render_laboratorio_experimental():
-    st.title("🧪 Laboratório Experimental: Trabalhos Futuros")
+    st.title("Laboratório Experimental: Trabalhos Futuros")
     st.caption("Investigação e prototipagem de soluções para as limitações identificadas no TCC (Eixo Z e Pose Estimation)")
 
     tab_eixo_z, tab_pose = st.tabs([
-        "📐 Solução 1: Normalização de Escala (Mitigação do Eixo Z)",
-        "🦴 Solução 2: Transição para Pose Estimation (YOLO11-Pose)"
+        "Solução 1: Normalização de Escala (Mitigação do Eixo Z)",
+        "Solução 2: Transição para Pose Estimation (YOLO11-Pose)"
     ])
 
     with tab_eixo_z:
@@ -59,15 +59,15 @@ def render_laboratorio_experimental():
         with col_res1:
             queda_bruta = velocidade_bruta >= 15.0
             if queda_bruta:
-                st.success("✅ Heurística Absoluta Original: QUEDA DETECTADA ($v \\ge 15.0$)")
+                st.success("Heurística Absoluta Original: QUEDA DETECTADA ($v \\ge 15.0$)")
             else:
-                st.error("❌ Heurística Absoluta Original: FALHA ($v < 15.0$) - Falso Negativo!")
+                st.error("Heurística Absoluta Original: FALHA ($v < 15.0$) - Falso Negativo!")
 
         with col_res2:
             limiar_norm = 12.0  # Limiar calibrado percentual
             queda_norm = v_norm >= limiar_norm
             if queda_norm:
-                st.success("✅ Heurística Normalizada Proposta: QUEDA DETECTADA ($v_{norm} \\ge 12.0\\%$)")
+                st.success("Heurística Normalizada Proposta: QUEDA DETECTADA ($v_{norm} \\ge 12.0\\%$)")
             else:
                 st.warning("Ação voluntária controlada")
 
@@ -81,17 +81,17 @@ def render_laboratorio_experimental():
             x=alturas_range,
             y=v_norms,
             mode="lines",
-            line=dict(color="#38bdf8", width=3),
+            line=dict(color="#1f3a5f", width=3),
             name="Velocidade Normalizada (%)"
         ))
-        fig_sens.add_hline(y=12.0, line_dash="dash", line_color="#ef4444", annotation_text="Limiar de Queda Normalizado (12%)")
+        fig_sens.add_hline(y=12.0, line_dash="dash", line_color="#7b2d26", annotation_text="Limiar de Queda Normalizado (12%)")
         fig_sens.update_layout(
             title="Sensibilidade da Velocidade Normalizada conforme a Escala (Altura da BBox)",
             xaxis_title="Altura da Bounding Box (pixels)",
             yaxis_title="Velocidade Normalizada (% / frame)",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#94a3b8"),
+            font=dict(color="#1d1d1b"),
             height=320,
             margin=dict(l=30, r=30, t=50, b=30)
         )

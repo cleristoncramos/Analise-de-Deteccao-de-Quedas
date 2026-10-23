@@ -18,12 +18,14 @@ def criar_matriz_confusao(tn: int, fp: int, fn: int, tp: int, titulo: str = "Mat
         y=y,
         text=text,
         texttemplate="%{text}",
-        textfont={"size": 16, "family": "Arial, sans-serif", "color": "white"},
+        textfont={"size": 16, "family": "Georgia, serif", "color": "#1d1d1b"},
         colorscale=[
-            [0.0, "rgba(30, 41, 59, 0.8)"],
-            [0.5, "rgba(59, 130, 246, 0.7)"],
-            [1.0, "rgba(239, 68, 68, 0.85)"]
+            [0.0, "#f3efe4"],
+            [0.5, "#b9c6d4"],
+            [1.0, "#7f98b5"]
         ],
+        xgap=1,
+        ygap=1,
         showscale=False
     ))
 
@@ -33,7 +35,7 @@ def criar_matriz_confusao(tn: int, fp: int, fn: int, tp: int, titulo: str = "Mat
         height=260,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#94a3b8")
+        font=dict(color="#1d1d1b")
     )
     return fig
 
@@ -65,17 +67,17 @@ def criar_grafico_comparativo_metricas(df: pd.DataFrame, titulo: str = "Comparat
         color="Métrica",
         barmode="group",
         title=titulo,
-        color_discrete_sequence=["#38bdf8", "#34d399", "#fbbf24", "#f43f5e"]
+        color_discrete_sequence=["#1f3a5f", "#4f6d5a", "#9a7b2f", "#7b2d26"]
     )
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#1d1d1b"),
         xaxis_title="",
         yaxis_title="Score (0 a 1)",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=20, r=20, t=60, b=50),
-        yaxis=dict(range=[0, 1.05], gridcolor="rgba(255,255,255,0.08)")
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, title_text=""),
+        margin=dict(l=20, r=20, t=100, b=50),
+        yaxis=dict(range=[0, 1.05], gridcolor="rgba(29,29,27,0.15)")
     )
     return fig
 
@@ -99,19 +101,19 @@ def criar_grafico_radar_metricas(dados_linha: Dict[str, Any], titulo: str = "Per
         r=valores,
         theta=categorias,
         fill="toself",
-        fillcolor="rgba(56, 189, 248, 0.25)",
-        line=dict(color="#38bdf8", width=2),
+        fillcolor="rgba(31, 58, 95, 0.18)",
+        line=dict(color="#1f3a5f", width=2),
         name=dados_linha.get("modelo", "Modelo")
     ))
 
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 1], gridcolor="rgba(255,255,255,0.1)"),
+            radialaxis=dict(visible=True, range=[0, 1], gridcolor="rgba(29,29,27,0.15)"),
             bgcolor="rgba(0,0,0,0)"
         ),
         title={"text": titulo, "x": 0.5, "xanchor": "center", "font": {"size": 14}},
         paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#1d1d1b"),
         margin=dict(l=30, r=30, t=40, b=30),
         showlegend=False,
         height=300
@@ -128,18 +130,18 @@ def criar_grafico_reducao_falsos_positivos(df_geral: pd.DataFrame):
         y="fp",
         color="cenario",
         barmode="group",
-        title="Impacto do Limitador Cinemático na Redução de Falsos Positivos (FP)",
+        title="Impacto do Limitador Cinemático<br>na Redução de Falsos Positivos (FP)",
         color_discrete_map={
-            "Com Velocidade": "#10b981",
-            "Sem Velocidade": "#ef4444"
+            "Com Velocidade": "#4f6d5a",
+            "Sem Velocidade": "#7b2d26"
         },
         labels={"fp": "Falsos Positivos (FP)", "modelo": "Modelo Avaliado", "cenario": "Heurística"}
     )
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#94a3b8"),
-        yaxis=dict(gridcolor="rgba(255,255,255,0.08)"),
-        margin=dict(l=20, r=20, t=50, b=40)
+        font=dict(color="#1d1d1b"),
+        yaxis=dict(gridcolor="rgba(29,29,27,0.15)"),
+        margin=dict(l=20, r=20, t=80, b=40)
     )
     return fig

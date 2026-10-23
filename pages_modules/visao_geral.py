@@ -1,10 +1,10 @@
 import streamlit as st
 
 def render_visao_geral():
-    st.title("🛡️ Sistema de Análise e Detecção de Quedas")
+    st.title("Sistema de Análise e Detecção de Quedas")
     st.caption("Prova de Conceito (PoC) para Prevenção de Acidentes em Ambientes Escolares baseada em Visão Computacional")
 
-    # Header de Autores e Instituição
+    # Header de Autoria e Instituição
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown("""
@@ -12,20 +12,21 @@ def render_visao_geral():
         *Centro de Educação Aberta e a Distância (CEAD)*  
         *Curso Superior de Tecnologia em Gestão de Dados (CSTGD)*  
         
-        **Autores**: Brendo A. Soares, Wener B. de Sampaio, Martony D. da Silva  
+        **Autor**: Brendo A. Soares  
+        **Orientadores**: Wener B. de Sampaio e Martony D. da Silva  
         **Paradigma de Avaliação**: *Event-Level Evaluation* (79 eventos contínuos)
         """)
     with col2:
-        st.info("💡 **Destaque Científico**\n\nO modelo **YOLOv11s** demonstrou ser o ponto de equilíbrio ideal (*sweet spot*) entre acurácia e estabilidade de centroide.")
+        st.info("**Destaque Científico**\n\nO modelo **YOLOv11s** demonstrou ser o ponto de equilíbrio ideal (*sweet spot*) entre acurácia e estabilidade de centroide.")
 
     st.divider()
 
     # Seções em abas organizadas
     tab_resumo, tab_metodologia, tab_dados, tab_conclusoes = st.tabs([
-        "📄 Resumo do Trabalho",
-        "🧠 Heurística Bimodal (AR + Velocidade)",
-        "📊 Base de Dados Heterogênea",
-        "🎯 Principais Conclusões"
+        "Resumo do Trabalho",
+        "Heurística Bimodal (AR + Velocidade)",
+        "Base de Dados Heterogênea",
+        "Principais Conclusões"
     ])
 
     with tab_resumo:

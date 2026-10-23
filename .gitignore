@@ -10,3 +10,4 @@ __pycache__/
 modelos/*.pt
 *.pt
 relatorios/
+!assets/video/*.mp4

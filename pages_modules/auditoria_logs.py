@@ -76,7 +76,7 @@ def gerar_pdf(df: pd.DataFrame, titulo_video: str, total_quedas: int) -> bytes:
     return bytes(pdf.output())
 
 def render_auditoria_logs():
-    st.title("📋 Painel de Auditoria e Logs de Eventos")
+    st.title("Painel de Auditoria e Logs de Eventos")
     st.caption("Inspeção de ocorrências em tempo real, auditoria de segurança preditiva e exportação de relatórios técnicos")
 
     eventos = st.session_state.get("historico_eventos", [])
@@ -127,14 +127,14 @@ def render_auditoria_logs():
     st.divider()
 
     # Seção de Exportação
-    st.subheader("📥 Exportação de Relatórios")
+    st.subheader("Exportação de Relatórios")
     col_exp1, col_exp2, col_exp3 = st.columns(3)
 
     # 1. CSV
     csv_bytes = df_filtrado.to_csv(index=False).encode("utf-8")
     with col_exp1:
         st.download_button(
-            label="📄 Baixar Relatório CSV",
+            label="Baixar Relatório CSV",
             data=csv_bytes,
             file_name="relatorio_ocorrencias_tcc.csv",
             mime="text/csv",
@@ -147,7 +147,7 @@ def render_auditoria_logs():
         df_filtrado.to_excel(writer, index=False, sheet_name="Ocorrencias")
     with col_exp2:
         st.download_button(
-            label="📊 Baixar Planilha Excel",
+            label="Baixar Planilha Excel",
             data=buffer_excel.getvalue(),
             file_name="relatorio_ocorrencias_tcc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -162,7 +162,7 @@ def render_auditoria_logs():
     )
     with col_exp3:
         st.download_button(
-            label="📑 Baixar Relatório PDF Técnico",
+            label="Baixar Relatório PDF Técnico",
             data=pdf_bytes,
             file_name="relatorio_auditoria_tcc_ufpi.pdf",
             mime="application/pdf",

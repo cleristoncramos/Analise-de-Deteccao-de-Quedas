@@ -16,7 +16,7 @@ def carregar_dados_benchmark():
         return json.load(f)
 
 def render_dashboard_metricas():
-    st.title("📊 Dashboard Científico e Métricas do Artigo")
+    st.title("Dashboard Científico e Métricas do Artigo")
     st.caption("Resultados empíricos consolidados da Prova de Conceito sob o paradigma Event-Level Evaluation (SBC)")
 
     dados = carregar_dados_benchmark()
@@ -33,7 +33,7 @@ def render_dashboard_metricas():
     def delta_pp(metrica: str) -> str:
         return f"{(melhor[metrica] - base[metrica]) * 100:+.1f} p.p. vs Sem Vel"
 
-    st.markdown(f"### 🏆 Performance do Modelo Recomendado: {melhor['modelo']} (Com Velocidade)")
+    st.markdown(f"### Performance do Modelo Recomendado: {melhor['modelo']} (Com Velocidade)")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Acurácia Global", f"{melhor['acuracia']:.1%}", delta_pp("acuracia"))
@@ -47,19 +47,19 @@ def render_dashboard_metricas():
     st.divider()
 
     aba_geral, aba_simulado, aba_ur, aba_publico, aba_analise = st.tabs([
-        "🌐 Comparativo Geral (79 Eventos)",
-        "🏫 Dataset Simulado (Escola)",
-        "🔬 UR Fall Dataset",
-        "🌍 Vídeos de Domínio Público",
-        "💡 Análise Crítica dos Modelos"
+        "Comparativo Geral (79 Eventos)",
+        "Dataset Simulado (Escola)",
+        "UR Fall Dataset",
+        "Vídeos de Domínio Público",
+        "Análise Crítica dos Modelos"
     ])
 
     with aba_geral:
         st.subheader("Tabela 4: Comparativo Consolidado de Todos os Cenários")
         df_geral = df_tabela4
         st.dataframe(
-            df_geral.style.highlight_max(subset=["acuracia", "precisao", "f1_score"], color="rgba(34, 197, 94, 0.25)")
-                          .highlight_min(subset=["fp"], color="rgba(56, 189, 248, 0.25)"),
+            df_geral.style.highlight_max(subset=["acuracia", "precisao", "f1_score"], color="rgba(79, 109, 90, 0.22)")
+                          .highlight_min(subset=["fp"], color="rgba(31, 58, 95, 0.15)"),
             width="stretch"
         )
 

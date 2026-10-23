@@ -75,11 +75,11 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
 
 
 def render_estudio_inferencia():
-    st.title("🎥 Estúdio de Inferência e Detecção")
+    st.title("Estúdio de Inferência e Detecção")
     st.caption("Bancada de testes interativa para execução dos modelos YOLOv11 com análise cinemática e postural")
 
     # Barra lateral de configurações
-    st.sidebar.header("⚙️ Parâmetros de Inferência")
+    st.sidebar.header("Parâmetros de Inferência")
 
     modelo_selecionado = st.sidebar.selectbox(
         "Modelo YOLOv11",
@@ -95,7 +95,7 @@ def render_estudio_inferencia():
         help="Compare a filtragem de falsos positivos da heurística cinemática contra o modelo estático."
     )
 
-    with st.sidebar.expander("🎛️ Calibração de Limiares Heurísticos", expanded=False):
+    with st.sidebar.expander("Calibração de Limiares Heurísticos", expanded=False):
         conf_min = st.slider("Confiança Mínima YOLO", 0.1, 0.9, 0.5, 0.05)
         limiar_ar = st.slider("Limiar de Razão de Aspecto (AR Queda)", 0.5, 1.0, 0.75, 0.05,
                              help="Valores abaixo deste limiar caracterizam o corpo na horizontal (Deitado).")
@@ -162,12 +162,12 @@ def render_estudio_inferencia():
     # Controles de Execução
     col_btn1, col_btn2, col_btn3 = st.columns(3)
     with col_btn1:
-        btn_iniciar = st.button("▶️ Iniciar Análise", type="primary", width="stretch")
+        btn_iniciar = st.button("Iniciar Análise", type="primary", icon=":material/play_arrow:", width="stretch")
     with col_btn2:
         # Qualquer clique reexecuta o script e interrompe o laço em andamento
-        st.button("⏹️ Parar", width="stretch")
+        st.button("Parar", icon=":material/stop:", width="stretch")
     with col_btn3:
-        btn_limpar_logs = st.button("🗑️ Limpar Ocorrências", width="stretch")
+        btn_limpar_logs = st.button("Limpar Ocorrências", icon=":material/delete:", width="stretch")
         if btn_limpar_logs:
             st.session_state.historico_eventos = []
             st.rerun()
@@ -254,9 +254,9 @@ def render_estudio_inferencia():
             # Renderização
             if modo_execucao == MODO_AB:
                 view_left.image(cv2.cvtColor(frame_sem, cv2.COLOR_BGR2RGB),
-                                caption="❌ Modelo Sem Velocidade (Muitos Falsos Positivos)", width="stretch")
+                                caption="Modelo Sem Velocidade (Muitos Falsos Positivos)", width="stretch")
                 view_right.image(cv2.cvtColor(frame_com, cv2.COLOR_BGR2RGB),
-                                 caption="✅ Modelo Com Velocidade (Filtro Cinemático Ativo)", width="stretch")
+                                 caption="Modelo Com Velocidade (Filtro Cinemático Ativo)", width="stretch")
             elif modo_execucao == MODO_SEM:
                 view_main.image(cv2.cvtColor(frame_sem, cv2.COLOR_BGR2RGB),
                                 caption=f"Modo Estático: Frame {numero_frame}", width="stretch")
@@ -266,15 +266,15 @@ def render_estudio_inferencia():
 
             # Telemetria (FPS de ponta a ponta: leitura, inferência, heurísticas e exibição)
             fps_instantaneo = 1.0 / max(0.001, (time.time() - t_frame_start))
-            m_fps.metric("⚡ FPS", f"{fps_instantaneo:.1f}")
-            m_pessoas.metric("👥 Pessoas em Cena", len(pessoas))
+            m_fps.metric("FPS", f"{fps_instantaneo:.1f}")
+            m_pessoas.metric("Pessoas em Cena", len(pessoas))
             if modo_execucao == MODO_AB:
-                m_quedas.metric("🚨 Quedas (Com / Sem Vel.)", f"{quedas_com} / {quedas_sem}")
+                m_quedas.metric("Quedas (Com / Sem Vel.)", f"{quedas_com} / {quedas_sem}")
             else:
-                m_quedas.metric("🚨 Quedas Registradas", quedas_com if executar_com else quedas_sem)
+                m_quedas.metric("Quedas Registradas", quedas_com if executar_com else quedas_sem)
 
             if queda_no_frame:
-                alert_placeholder.error(f"🚨 **ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {numero_frame}!**")
+                alert_placeholder.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {numero_frame}!**")
 
     finally:
         cap.release()

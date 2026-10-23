@@ -2,7 +2,9 @@
   "metadados": {
     "titulo": "Aplicação de Visão Computacional para Prevenção de Acidentes em Ambientes Escolares: Uma Prova de Conceito (PoC)",
     "autores": [
-      "Brendo A. Soares",
+      "Brendo A. Soares"
+    ],
+    "orientadores": [
       "Wener B. de Sampaio",
       "Martony D. da Silva"
     ],
