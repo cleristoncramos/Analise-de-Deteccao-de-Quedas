@@ -35,3 +35,19 @@ foreach ($video in $videos) {
 ```
 
 Ps. Lembre-se colocar os vídeos na pasta de vídeos, já as pastas de relatórios e modelos o próprio código cria.
+
+## Executando a Interface Web (Streamlit)
+
+O projeto conta com uma interface gráfica completa e interativa para demonstração e análise científica dos resultados do TCC:
+
+```powershell
+# Ativar o ambiente virtual e iniciar a aplicação
+.\.venv\Scripts\streamlit run app.py
+```
+
+A interface disponibiliza:
+1. **Visão Geral & Artigo SBC**: Fundamentação teórica, resumo da pesquisa e justificativas éticas.
+2. **Estúdio de Inferência**: Execução de vídeos/webcam com comparador lado a lado (**Com Velocidade** vs. **Sem Velocidade**) e ajuste em tempo real de limiares.
+3. **Dashboard Científico**: Visualização interativa das métricas empíricas consolidadas (Tabelas 1 a 4 do artigo), matrizes de confusão e gráficos comparativos no Plotly.
+4. **Auditoria & Logs**: Registro detalhado das ocorrências com exportação para CSV, Excel e PDF técnico.
+5. **Laboratório Experimental**: Simulação da velocidade normalizada para mitigação do Eixo Z e conceitos de Pose Estimation.

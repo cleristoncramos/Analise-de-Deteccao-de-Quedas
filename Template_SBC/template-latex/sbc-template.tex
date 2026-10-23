@@ -1,0 +1,735 @@
+\documentclass[12pt]{article}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\everymath{\displaystyle}
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{makecell}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{xurl}
+% \usepackage{hyperref}
+
+
+
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+
+% Definição de estilos dos blocos
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+
+\sloppy
+
+\title{Aplicação de Visão Computacional para Prevenção\\ de Acidentes em Ambientes Escolares:\\ Uma Prova de Conceito (PoC)}
+
+\author{Brendo A. Soares\inst{1}, Wener B. de Sampaio\inst{2}, Martony D. da Silva\inst{3} }
+
+
+\address{Centro de Educação Aberta e a Distância -- Universidade Federal do Piauí
+  (UFPI)\\
+  Caixa Postal 64049-550 -- Teresina -- PI -- Brazil
+  \email{brendo.soares@ufpi.edu.br, wener.sampaio@ufpi.edu.br, mardemes@gmail.com}
+}
+
+\begin{document} 
+
+\maketitle
+
+\begin{abstract}
+  This work presents a Proof of Concept (PoC) aimed at detecting risk situations,
+  such as falls and abrupt actions, in school environments. To overcome ethical
+  and legal restrictions regarding the use of images of minors, the system was
+  validated using a heterogeneous dataset comprising 79 continuous events
+  evaluated under an Event-Level paradigm. The architecture combines YOLOv1
+  models with a bimodal heuristic, uniting postural analysis and scalar velocity.
+  The results demonstrate that the velocity filter drastically reduces false
+  positives, highlighting the YOLOv11s model as the ideal performance sweet spot.
+  However, depth variations (Z-axis) caused limitations in recall. Thus, pose
+  estimation and scale normalization emerge as guidelines for future work,
+  concluding that the approach is viable as a high-precision preventive tool.
+
+\vspace{\baselineskip}
+\noindent
+\textbf{Keywords}: School, Safety, Computer Vision, YOLOv11, Risk Analysis, Event-Level Evoluation.
+\end{abstract}
+     
+\begin{resumo}
+  Este trabalho apresenta uma Prova de Conceito (PoC) para detectar situações de risco,
+  como quedas e ações bruscas, em ambientes escolares. Para contornar restrições éticas
+  e legais sobre imagens de menores, o sistema foi validado com um conjunto heterogêneo
+  de 79 eventos contínuos, avaliados sob o paradigma Event-Level. A arquitetura combina
+  modelos YOLOv11 com uma heurística bimodal, unindo análise postural e velocidade escalar.
+  Os resultados mostram que o filtro de velocidade reduz drasticamente os falsos positivos,
+  destacando o modelo YOLOv11s como o ponto de equilíbrio ideal. Contudo, variações de
+  profundidade (eixo Z) causaram limitações de revocação (Recall). Assim, a estimativa
+  de pose e a normalização de escala surgem como diretrizes para trabalhos futuros,
+  concluindo que a abordagem é viável como ferramenta preventiva de alta precisão.
+
+\vspace{\baselineskip}
+\noindent
+\textbf{Palavras-chave}: Escola, Segurança, Visão Computacional, YOLOv11, Análise de Risco, Avaliação por eventos.
+\end{resumo}
+
+
+
+\section{Introdução} \label{introducao}
+
+O ambiente escolar é frequentemente percebido como um local de proteção absoluta; no entanto, 
+estatísticas indicam uma realidade alarmante quanto à segurança física dos alunos. Segundo
+levantamento do \cite{aldeias:24}, apenas em 2023, foram registrados mais de 110 mil internações
+infantis, onde as quedas representam quase 60\% dos atendimentos de emergência. Dados complementares
+\cite{agenciabrasil:25} revelam que, no Brasil, cerca de 14 crianças são hospitalizadas por hora 
+devido a acidentes que poderiam ser evitados com monitoramento adequado.
+
+Apesar da presença de inspetores e professores, a supervisão humana é limitada pela fadiga, pelo
+número elevado de alunos e pela impossibilidade de monitorar simultaneamente múltiplos pontos cegos,
+como corredores e pátios amplos. Somando a isso, episódios de convivência violenta e \textit{bullying}
+atingem 38\% das instituições \cite{abrace:25}, frequentemente manifestando-se através de dinâmica
+acelerada e imprevisível dos alunos, o que potencializa o risco de quedas. Identificar essas ações de 
+risco de maneira autônoma torna-se vital para mitigar a gravidade de acidentes e permitir uma resposta
+imediata das equipes de segurança escolar.
+
+A motivação para este trabalho reside na necessidade de uma camada de segurança tecnológica que atue de
+forma preditiva. Sistemas de monitoramento convencionais são majoritariamente passivos, servindo apenas
+para auditoria após o ocorrido. A aplicação de Visão Computacional (VC) permite a transição para um 
+monitoramento ativo, capaz de identificar padrões de risco em tempo real. Contudo, muitas abordagens de
+detecção de anomalias focam em ambientes industriais ou urbanos, cujos padrões de movimento de adultos
+diferem drasticamente da dinâmica escolar. Além disso, a implementação prática nesses ambientes enfrenta
+desafios éticos rigorosos, visto que o uso de imagens reais de menores é restrito pela Lei Geral de
+Proteção de Dados (LGPD) \cite{lgpd:18} e pelo Estatuto da Criança e do Adolescente (ECA) \cite{eca:90}.
+
+Neste contexto, este artigo descreve a implementação de uma Prova de Conceito (\textit{Proof of Concept - PoC})
+que utiliza dados simulados para contornar restrições legais e éticas. Para garantir a robustez dessa validação
+e testar os limites do sistema sob diferentes resoluções e ângulos de profundidade, a pesquisa expande sua
+análise para um conjunto heterogêneo de dados, incorporando também vídeos de domínio público da internet e 
+o \textit{UR Fall Detection Dataset} \cite{kwolek2014human}. A principal contribuição reside na validação
+da arquitetura \textit{YOLOv11} (explorando diferentes escalas, do modelo \textit{Nano} ao \textit{Extra Large}) 
+integrada a uma análise cinemática. Esta pesquisa busca investigar a mitigação de falsos positivos em detecções
+de queda, justificando-se pelo fato de que o excesso de alarmes errôneos gera ``fadiga de alarme'' no sistema
+inviabilizando o seu uso na prática, ainda que o a redução de falsos negativos (quedas não detectadas) continue
+sendo um desafio crítico para trabalhos futuros. Para atingir esse equilíbrio, o estudo introduz a análise de
+velocidade escalar do centroide $(v)$ como fator de confirmação junto à Razão de Aspecto $(AR)$, que consiste
+na proporção matemática entre a altura e a largura da caixa delimitadora do indivíduo detectado. O objetivo
+geral é validar se essa combinação é suficiente para distinguir uma queda real de movimentos voluntários,
+como sentar ou agachar, garantindo a segurança física no ambiente escolar de forma automatizada.
+
+\section{Fundamentação Teórica} \label{fundamentacao-teorica}
+
+Nesta secção apresentam-se os conceitos fundamentais teóricos que sustentam a \textit{PoC}, abrangendo desde 
+processamento de imagem até a arquitetura de detecção de objetos utilizada e as heurísticas aplicadas
+para a identificação de ações de risco.
+
+\subsection{Visão Computacional e Redes Neurais Convolucionais}
+
+A VC busca emular a capacidade do sistema visual humano, permitindo que máquinas interpretem e compreendam
+informações a partir de dados visuais. O estado da arte em VC baseia-se nas Redes Neurais Convolucionais
+(\textit{Convolutional Neural Networks - CNNs}), que são modelos de \textit{deep learning} compostos por 
+camadas de filtros que extraem características espaciais de forma hierárquica \cite{ibm:25}.
+
+Em um primeiro nível, a rede identifica padrões simples como bordas e texturas; em níveis subsequentes, essas
+informações são combinadas para reconhecer formas complexas, como a silhueta de um corpo humano ou a orientação
+de um membro. Essa capacidade de abstração é o que permite ao sistema identificar uma pessoa em diferentes 
+posturas (em pé, sentada ou deitada) no ambiente escolar.
+
+\subsection{Arquitetura YOLO (\textit{You Only Look Once})}
+
+Diferente de algoritmos de detecção tradicionais que utilizam janelas deslizantes ou propostas de regiões em
+múltiplas etapas, a família \textit{YOLO} trata a detecção como um problema de regressão único. Em uma única
+passagem pela rede (\textit{single-pass/shot}), o modelo prevê simultaneamente as coordenadas das caixas 
+delimitadoras (\textit{bounding boxes}) e as probabilidades de classe \cite{yolo:20}.
+
+Neste trabalho, utiliza-se a versão v11 \cite{ultralytics_yolo11_pt}, explorando variações que vão da escala 
+\textit{Nano (n)} à \textit{Extra Large (x)}. A escolha por essa arquitetura justifica-se pela alta taxa de
+quadros por segundo (\textit{Frames Per Second - FPS}) alcançada, o que é mandatório para sistemas de segurança
+que exigem resposta imediata em tempo real, permitindo que a pesquisa avalie o compromisso entre:
+
+\begin{itemize}
+    \item \textbf{Eficiência}: ideal para \textit{hardwares} escolares que possuem menor poder de processamento.
+    
+    \item \textbf{Acurácia}: Necessária para garantir que a delimitação da caixa seja precisa o suficiente
+    para os cálculos de postura e velocidade.
+    
+\end{itemize}
+
+\section{Trabalhos Relacionados e Análise de Lacunas}
+
+Embora a literatura sobre segurança escolar via VC seja restrita por questões éticas e de privacidade, 
+existem avanços consolidados em áreas correlatas que servem de base para esta pesquisa. A análise desses
+trabalhos permite identificar limitações que justificam a implementação desta \textit{PoC}.
+
+\subsection{Human Action Recognition (HAR) e Video Anomaly Detection (VAD)}
+
+Pesquisas em \textit{Human Action Recognition} (HAR) \cite{Lu_2023_ICCV} utilizam bases de dados como 
+HDM05 \cite{cg-2007-2}, NTU60 \cite{shahroudy2016ntu} e NTU120 \cite{Liu_2020} para treinar redes em 
+tarefas de classificação de movimentos bruscos, como corridas e quedas. No entanto, esses modelos são
+majoritariamente treinados com adultos e em cenários controlados, apresentando baixa performance na
+dinâmica imprevisível de pátios escolares, onde a oclusão de corpos e a variação de escala dos alunos
+são constantes.
+
+Paralelamente, abordagens de \textit{Video Anomaly Detection} (VAD) \cite{Huang_2025_CVPR}, frequentemente
+baseadas em \textit{autoencoders}, buscam identificar comportamentos que fogem à regularidade temporal do
+ambiente. Contudo, esses sistemas tendem a ser computacionalmente pesados e de difícil interpretação para
+alertas específicos de acidentes imediatos.
+
+\subsection{Comparativo entre Abordagens de Detecção}
+
+Para fundamentar a escolha do modelo proposto, o Quadro \ref{qua:comparacao_abordagens} apresenta um 
+comparativo entre a abordagem Baseada em Pose, cujo conceitos foram extraídos do artigo \cite{delic2025}
+e as duas modelagens desenvolvidas nesta pesquisa: a Estatística (Postural), que isola a análise geométrica,
+e a Proposta (Bimodal), que integra os fatores geométricos e cinemáticos.
+
+\begin{table}[ht]
+    \renewcommand{\tablename}{Quadro}
+    \caption{Comparação de técnicas de detecção de quedas.}
+    \centering
+    \begin{tabular}{|p{3.3cm}|p{2cm}|p{3.5cm}|p{4.7cm}|}
+        \hline
+        \textbf{Abordagem} & \textbf{\makecell{Variáveis \\ Utilizadas}} & \textbf{Vantagem} & \textbf{Principal Lacuna} \\
+        \hline
+        Estática (Postural) &
+        Razão de Aspecto ($AR$) &
+        Baixo custo computacional &
+        Alto índice de falsos positivos em ações controladas (agachar/sentar). \\
+        \hline
+        Baseada em Pose \cite{delic2025} &
+        Pontos de articulação (\textit{Keypoints}) &
+        Alta precisão na postura &
+        Exige alto poder de processamento, inviável para monitoramento de múltiplos alunos em tempo real. \\
+        \hline
+        Proposta (Bimodal) &
+        $AR$ + Velocidade ($v$) &
+        Equilíbrio entre precisão e FPS; redução de falsos positivos &
+        Dependência de rastreamento (\textit{tracking}) estável de IDs. \\
+        \hline
+    \end{tabular}
+    \label{qua:comparacao_abordagens}
+\end{table}
+
+A análise comparativa revela que a integração cinemática (velocidade) atua como um filtro crítico
+de confirmação. Enquanto sistemas baseados apenas em postura classificariam qualquer indivíduo
+posicionado horizontalmente como uma ``queda'', a solução aqui apresentada exige a ocorrência de
+um vetor de velocidade brusco para validar o alerta, preenchendo a lacuna de confiabilidade 
+identificada em trabalhos anteriores.
+
+\section{Metodologia}
+
+Nesta secção faz-se o detalhamento dos procedimentos técnicos adotados para a execução, focando 
+na integração do modelo \textit{YOLOv11} e a sistemática de coleta de dados para análise.
+
+A arquitetura lógica do sistema, conforme ilustrada na Figura \ref{fig:metodo_bimodal}, opera em um 
+fluxo bimodal. Diferente de abordagens estáticas, os metadados extraídos pelo modelo \textit{YOLOv11} alimentam
+simultaneamente dois ramos de análise: a geometria postural via Razão de Aspecto ($AR$) e a dinâmica 
+cinemática via velocidade escalar ($v$). O alerta de risco é condicionado à interseção lógica de ambos 
+os critérios, mitigando disparos falso-positivos originados por movimentos voluntários de baixa velocidade.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[node distance=2cm, font=\small]
+
+    % Estilos dos blocos
+    \tikzstyle{start} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=0.8cm, text centered, draw=black, fill=gray!10]
+    \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=0.8cm, text centered, draw=black, fill=blue!10]
+    \tikzstyle{decision} = [diamond, aspect=2, minimum width=3.5cm, text centered, draw=black, fill=yellow!20]
+    \tikzstyle{arrow} = [thick,->,>=stealth]
+
+    % Nós - Coluna Central
+    \node (in) [start] {Entrada: \textit{Stream} de Vídeo};
+    \node (det) [process, below of=in] {Detecção e \textit{Tracking}};
+    \node (ext) [process, below of=det] {Extração: $w, h, C(x,y)$};
+    
+    % Camada de Cálculo (Afastadas horizontalmente para evitar sobreposição)
+    \node (postura) [process, below left of=ext, xshift=-1.5cm, yshift=-0.5cm] {Geometria: $AR = h/w$};
+    \node (vel) [process, below right of=ext, xshift=1.5cm, yshift=-0.5cm] {Cinemática: $v = \Delta C / \Delta t$};
+    
+    % Decisão (Aumentado o yshift para a seta não cruzar o texto)
+    \node (dec) [decision, below of=ext, yshift=-2.8cm] {($AR < 0.75$) $\land$ ($v \ge 15$)?};
+    
+    % Saídas
+    \node (alerta) [process, below of=dec, yshift=-1cm, fill=red!20] {Gatilho: Alerta de Queda};
+    \node (normal) [start, right of=dec, xshift=3.5cm] {Ação Controlada};
+
+    % Conexões com cantos ortogonais (|- ou -|) para clareza
+    \draw [arrow] (in) -- (det);
+    \draw [arrow] (det) -- (ext);
+    
+    % Setas saindo da extração para os cálculos
+    \draw [arrow] (ext) -| (postura);
+    \draw [arrow] (ext) -| (vel);
+    
+    % Setas voltando dos cálculos para a decisão
+    \draw [arrow] (postura) |- (dec);
+    \draw [arrow] (vel) |- (dec);
+    
+    % Saída da decisão
+    \draw [arrow] (dec) -- node[anchor=east] {Sim} (alerta);
+    \draw [arrow] (dec) -- node[anchor=south] {Não} (normal);
+
+    \end{tikzpicture}
+    \caption{Fluxograma do método bimodal. O uso de caminhos ortogonais evita a sobreposição de elementos geométricos e cinemáticos.}    
+    \label{fig:metodo_bimodal}
+\end{figure}
+
+\subsection{Ferramenta e Processamento de Dados}
+
+O desenvolvimento foi realizado em linguagem \textit{Python}, utilizando o \textit{framework} 
+oficial da \cite{ultralytics_docs} para a manipulação e inferência dos modelos de VC. O fluxo de 
+processamento consiste na leitura de sequências de vídeo simulados, onde cada frame é submetido
+à rede neural para a extração de metadados das detecções.
+
+Diferente de sistemas de monitoramento convencionais, o processamento foca na extração das
+coordenadas das \textit{bounding boxes} para alimentar algoritmos de análise geométrica,
+sem a necessidade de armazenamento ou manipulação externa de bibliotecas de interface gráfica
+complexas nesta etapa de validação.
+
+Cabe destacar que, para a execução desta \textit{PoC}, os modelos não passaram por um processo
+de treinamento específico (\textit{fine-tuning}) com imagens de ambiente escolar. Foram utilizados
+os pesos pré-treinados nativos do \textit{YOLOv11} treinados na base de dados \textit{COCO}, focando
+exclusivamente na detecção da classe ''pessoa`` (\textit{person}). A inteligência do sistema reside
+na aplicação da heurística matemática sobre os metadados gerados por essa detecção padrão.
+
+\subsubsection{Configuração e Escalonamento dos Modelos}
+
+Para avaliar o desempenho do sistema sob diferentes requisitos de \textit{hardware}, foram selecionadas 
+variações da arquitetura \textit{YOLOv11} (lançada como estado da arte em eficiência e acurácia). A 
+escolha por esta versão justifica-se pela introdução dos módulos \textit{C3k2} e pela otimização
+do \textit{Spatial Pyramid Pooling - Fast} (SPPF), que permitem uma extração de características 
+mais granular em ambientes escolares densos. Foram utilizadas as seguintes variações:
+
+\begin{itemize}
+
+    \item \textbf{Variação \textit{Nano (v11n)}}: Configurada com menor profundidade de camadas, 
+    visando testar a viabilidade em sistemas de baixa latência e recursos computacionais limitados 
+    (\textit{edge computing}).
+    
+    \item \textbf{Variação \textit{Extra Large (v11x)}}: Utilizada para estabelecer o teto de precisão 
+    e acurácia na identificação das ações de risco, servindo como padrão ouro (\textit{ground truth}
+    de detecção) para a validação das heurísticas.
+    
+\end{itemize}
+
+
+\subsubsection{Detecção de Quedas Via Heurística Geométrica}
+
+A identificação de uma queda, classificada aqui como uma ação de risco crítica em escolas,
+não depende apenas da detecção do indivíduo, mas da análise da sua geometria no espaço. O sistema
+utiliza as \textit{bounding boxes} (caixas delimitadoras) geradas pelo \textit{YOLO} para calcular a $(AR)$.
+\\
+
+A lógica implementada baseia-se na variação da relação entre a largura \textit{(w)} e 
+a altura \textit{(h)} da caixa. Em uma postura normal, a altura é significativamente maior que a largura ($AR < 1 $).
+Complementarmente, monitora-se a velocidade de deslocamento do centroide da caixa para distinguir
+uma queda de uma ação controlada, como sentar-se ou deitar-se deliberadamente.
+
+\subsubsection{Rastreamento e Extração de Características}
+
+Para viabilizar a análise temporal das ações de risco, a detecção isolada em quadros estáticos não é suficiente.
+Por isso, implementou-se o rastreamento contínuo dos indivíduos utilizando o algoritmo de 
+\textit{tracking} nativo do modelo \textit{YOLO}. Essa abordagem atribui um identificador único (\textit{ID}) a
+cada indivíduo detectado, permitindo monitorar sua trajetória e evolução geométrica ao longo do tempo.
+
+Para cada quadro processado, a rede extrai as coordenadas da \textit{bounding box} $[(x1, y1); (x2, y2)]$,
+a partir das quais calcula-se o centroide $C$ do indivíduo.
+
+\\
+
+% $C = (C_x, C_y) = \left(\frac{x_1 + x_2}{2}, \frac{y_1 + y_2}{2} \right)$
+
+\subsection{Heurística Combinada para Identificação de Quedas}
+
+A identificação de uma queda real no sistema depende de uma heurística bimodal, que avalia simultaneamente a
+postura estática e a dinâmica do movimento. Essa combinação foi concebida para reduzir drasticamente
+a taxa de falsos positivos (por exemplo, distinguir uma pessoa deitando-se intencionalmente de uma pessoa
+sofrendo uma queda abrupta).
+
+\begin{enumerate}[label=\Alph*.]
+
+    \item \textbf{Razão de Aspecto ($AR$)}\\
+    A primeira etapa avalia a geometria da \textit{bounding box}. Define-se a largura $(w)$
+    e a altura $(h)$ da detecção para calcular o $(AR)$ como mostrado na fórmula $AR = \frac{h}{w}$. 
+    O estado postural do indivíduo é inferido por meio de limiares pré-definidos:\\
+    Se $AR < 0,75$, a postura é classificada como ``Deitado'';\\ 
+    Valores entre $0,75$ e $1,2$ indicam ``Sentado/Agachado'';\\ 
+    E valores superiores indicam ``Em pé''.
+    \\
+    
+    Ressalto que os valores limiares adotados para a classificação postural constituem como uma contribuição
+    empírica dos autores. Os valores foram definidos a partir da calibração inicial realizada no \textit{Dataset}
+    Simulado, onde observou-se o comportamento das dimensões das \textit{bounding boxes} de pessoas em posições
+    normais (em pé) e em cenários de queda.
+    \\
+    \item \textbf{Análise Cinemática (Velocidade)} \\
+    A segunda etapa afere a velocidade de deslocamento do centroide entre o quadro atual $(t)$ e o quadro
+    imediatamente anterior $(t - 1)$ para o mesmo identificador \textit{ID} rastreado nativo do \textit{YOLO}.
+    A velocidade $v$, dada em \textit{pixels} por \textit{frame}, é calculada pela distância euclidiana
+    percorrida nesse intervalo. Para a interpretação do sistema, a velocidade bruta foi segmentada em três
+    categorias de movimento: ``Mexendo-se Pouco'' (abaixo de 1.0 \textit{px/frame}), ``Andando'' (entre 1.0
+    e 30.0 \textit{px/frame}) e ``Correndo'' (acima de 30.0 \textit{px/frame})
+    \begin{equation}
+        v = \sqrt{(C_{x,t} - C_{x,t-1})^2 + (C_{y,t} - C_{y,t-1})^2}
+    \end{equation}
+    \\
+    \item \textbf{Confirmação do Evento de Risco}\\
+    A confirmação de uma queda verdadeira ocorre apenas quando as duas condições críticas são satisfeitas
+    simultaneamente: a transição geométrica para a postura ``Deitada'' e a ocorrência de um movimento brusco 
+    no momento dessa transição. Se a velocidade for muito baixa durante a mudança de postura, o sistema 
+    infere que a pessoa deitou ou agachou-se de propósito.
+    
+    Para parametrizar essa ação brusca, o limiar de queda foi estabelecido em $v \ge 15.0$ $px/frame$), 
+    representando o ponto médio da categoria de movimento ``Andando''. Dessa forma, a validação lógica 
+    obedece à seguinte condição:
+    
+    \begin{equation}
+    Queda =
+    \begin{cases}
+        Verdadeiro, & \text{se } Postura = \text{``Deitado''} \land v \ge 15.0 \\
+        Falso, & \text{caso contrário}
+    \end{cases}
+    \end{equation}
+
+    Essa lógica atua como um filtro eficaz: a postura identificada como o corpo está, enquanto o limite de
+    15.0 \textit{px/frame} garante que a transição ocorreu com velocidade suficiente para ser caracterizada
+    como um acidente, e não como uma ação voluntária controlada. 
+    \\
+    
+    A definição deste limiar de velocidade é uma proposta heurística original deste trabalho. Este valor
+    foi estabelecido empiricamente durante a fase de calibração no \textit{Dataset} Simulado, identificando-se
+    como o ponto crítico mínimo que separa o vetor de aceleração de um corpo em queda livre e descontrolada
+    dos vetores de velocidade gerados por movimentos ou desaceleração voluntárias (como o ato de sentar-se
+    ou agachar-se)
+    
+    
+\end{enumerate}
+
+
+\subsection{Processamento e Estruturação de Dados (\textit{Logging})}
+
+A validação da \textit{PoC} requer a preservação dos resultados para posterior análise estatística. 
+Para tanto, o fluxo de processamento de dados não se restringe à exibição visual (\textit{overlays} 
+nos vídeos), mas implementa uma rotina estruturada de gravação de \textit{logs}.
+
+Ao iniciar a análise de um vídeo, o sistema cria automaticamente uma estrutura de diretórios isolando os dados 
+de acordo com o nome do arquivo fonte e a versão do modelo \textit{YOLO} utilizado. Todos os eventos críticos identificados
+pelas heurísticas são registrados em um arquivo \textit{.csv}, que atua como um banco de dados temporal com os
+seguintes campos:
+
+\begin{itemize}
+
+    \item \textbf{Quadro}: Número do \textit{frame}.
+    
+    \item \textbf{Data/Hora}: \textit{Timestamp} da ocorrência.
+    
+    \item \textbf{Tipo de Evento}: Classificação do alerta (ex.: QUEDA).
+    
+    \item \textbf{Detalhes}: Descrição textual da detecção.
+    
+    \item \textbf{Postura Inferida}: Estado geométrico do alvo no momento do evento.
+    
+    \item \textbf{Velocidade}: Taxa de deslocamento registrada durante o gatilho da ação.
+    
+\end{itemize}
+Essa abordagem não bloqueante garante que os registros das anomalias não comprometam o tempo de
+processamento de \textit{FPS} do sistema e fornece material empírico preciso para a avaliação
+de acurácia apresentada nos resultados.
+
+
+\subsection{Base de Dados e Cenários de Validação}
+
+Para assegurar a qualidade da \textit{PoC} e contornar restrições éticas referentes ao uso de
+imagens de menores, a validação do sistema baseou-se em um conjunto heterogêneo de dados visuais.
+O experimento consistiu no processamento de sequências de vídeos categorizados como eventos 
+contínuos, totalizando 79 eventos distintos analisados (entre cenários normais e ações de risco).
+As fontes de dados foram divididas em três categorias:
+
+\begin{itemize}
+
+    \item \textbf{\textit{Dataset} Simulado}: Composto por gravações controladas em ambiente escolar
+    (sala de aula), produzidas exclusivamente pelos autores deste trabalho para esta pesquisa. O
+    processo envolveu a gravação com câmeras posicionadas em ângulos que simulam o monitoramento de
+    uma sala, capturando a dinâmica de movimentação, interações em grupo, quedas ensaiadas e ações
+    voluntarias (como agachar-se). Esta base de dados contem 4 registros em plano contínuo com 
+    variação de 0:58 à 2:40 minutos. Estes dados forneceram a base para a calibração inicial da 
+    heurística da Postura $(AR)$ e Velocidade $(v)$.
+    \\
+    \item \textbf{\textit{UR Fall Detection Dataset}}: Base pública amplamente utilizada na literatura 
+    acadêmica para o \textit{benchmark} de sistemas de detecção de anomalias contendo 30 eventos
+    de quedas \cite{kwolek2014human}. Este \textit{dataset} é composto por gravações realizadas com
+    câmeras Kinect, capturando tanto Atividade de Vida Diária (ADL) como sentar, caminhar e deitar no
+    chão, quanto eventos de quedas frontais e laterias de indivíduos em posições variadas. Este
+    \textit{dataset} foi fundamental para testar o comportamento do modelo frente a padrões de quedas
+    já consolidados cientificamente.
+    \\
+    \item \textbf{Vídeos de Domínio Público}: Seleção de cenas de quedas reais extraídas da internet,
+    incluindo registros de câmeras de segurança, nessa base de dados foram usados 2 eventos, 1 contendo
+    um evento de queda  que foi retirado de um \textit{Reality Show} e 1 com evento normal de pessoas 
+    andando. O uso deste conjunto visou introduzir ``ruídos'' do mundo real, desafiando a rede neural 
+    com as variações de iluminação, qualidade de imagem e, primordialmente, mudanças de perspectiva 
+    no eixo de profundidade (eixo Z).    
+    
+\end{itemize}
+
+Esta composição de dados permitiu uma validação criteriosa sobre a capacidade de generalização dos modelos
+da família \textit{YOLOv11}, confrontando a precisão da detecção com a diversidade de contextos de entrada.
+
+Para melhor precisão e a uniformidade da extração de características, todos as sequências de vídeo foram
+submetidas a uma compressão para a resolução nativa de 1080p, com o fito de neutralizar disparidades de 
+escala espacial decorrentes de resoluções originais distintas. No tocante ao processamento, a inferência dos
+\textit{datasets} foi executada em um ambiente equipado com processador Intel core i5-13450hx e 16 GB de 
+memória RAM. Restringiu-se o processamento deliberadamente à Unidade Central de Processamento (\textit{CPU}),
+sem aceleração gráfica dedicada. Essa premissa metodológica buscou simular as limitações de infraestrutura
+inerentes à realidade da infraestrutura das escolas públicas. Embora a aferição métrica exata da taxa de
+quadros por segundo (\textit{FPS}) e do consumo de \textit{hardware} não tenha composto o escopo analítico
+desta \textit{PoC} que focou primordialmente na eficácia da filtragem de Falsos Positivos, a execução 
+contínua puramente em \textit{CPU} demonstrou a viabilidade operacional básica do modelo bimodal.
+
+\subsection{Estratégia de Avaliação: Análise Baseada Em Eventos}
+
+Durante a fase de testes preliminares desta pesquisa, observou-se empiricamente que a avaliação métrica
+puramente baseada em quadro (\textit{Frame-Level}) tende a penalizar severamente o desempenho estatístico
+do modelo. Constatou-se que uma falha de inferência em frações de segundo não anula a eficácia do alerta já
+gerado para a ação contínua. Portanto, para refletir com maior fidelidade a aplicação da \textit{PoC} em
+ambientes escolares, onde o objetivo das equipes de segurança é serem notificadas sobre o incidente de
+maneira total, a validação dos resultados esta pesquisa foi estruturada sob a abordagem baseada em eventos
+(\textit{Event-Level}).
+
+Com esta métrica, uma sequência contínua de ação, como o ato de uma pessoa ir ao chão é agrupada e
+contabilizada como um único evento temporal. A matriz de Confusão para a extração das métricas foi
+definida pelas seguintes regras:
+
+\begin{enumerate}
+    \item Verdadeiro Positivo (\textit{TP}): Um evento real de queda que disparou ao menos um alerta de 
+    risco válido do sistema.
+    \item Falso Negativo (\textit{FN}): Um evento real de queda que o sistema falhou em alertar durante
+    toda a sua duração.
+    \item Verdadeiro Negativo (\textit{TN}): Um evento normal como uma pessoa caminhando ou sentando que
+    o sistema corretamente ignorou, não disparando alertas.
+    \item Falso Positivo (\textit{FP}): Um evento normal que o sistema classificou de maneira errada como
+    uma ação de risco.
+\end{enumerate}
+
+Essa abordagem reflete com maior fidelidade a aplicação da \textit{PoC} em ambientes escolares, onde o
+objetivo das equipes de segurança é ser notificado sobre o incidente, independentemente de flutuações
+de \textit{bounding boxes} em quadros intermediários.
+
+\section{Resultado e Discussão}
+
+Analisando estatisticamente o desempenho dos modelos \textit{YOLOv11} na identificação de ações de risco. 
+Conforme definido na metodologia, a extração de métricas foi conduzida sob o padrão \textit{Event-Level}, 
+contabilizando o acionamento do sistema durante a janela de ocorrência da ação contínua. O experimento 
+processou eventos distintos, combinando cenários normais (Verdadeiros Negativos) e episódios de quedas reais
+(Verdeiros Positivos).
+
+\subsection{Desempenho Isolado por Cenário de Validação}
+
+Para compreender a capacidade de generalização do sistema, os resultados foram primeiramente analisados
+de forma segmentada, observando o comportamento da heurística bimodal (Postura + Velocidade) frente às
+particularidades de cada base de dados:
+
+
+\textbf{No Dataset Simulado (Ambiente Escolar)}: Por tratar-se de um ambiente controlado, com câmeras
+posicionadas de forma a simular o monitoramento de uma sala de aula com boa resolução. Este \textit{dataset}
+busca introduzir as complexidades da rotina escolar, incluindo oclusões movimentações em grupo e ações
+voluntarias rotineiras, como agachar-se para pegar algum objeto. A Tabela ~\ref{tab:metricas-meu-dataset}
+apresenta o comparativo das métricas neste cenário.
+
+\setcounter{table}{0}
+\begin{table}[h!]
+\centering
+\small
+\caption{Métricas de detecção: Desempenho no \textit{Dataset} Simulado.}
+\label{tab:metricas-meu-dataset}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c|c}
+\hline
+\textbf{Cenário} &\textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Acurácia} & \textbf{Precisão (P)} & \textbf{Recall (R)} & \textbf{F1-Score} \\ \hline
+Com Velocidade & YOLOv11n & 2 & 7  & 4 & 3 & 0.312 & 0.300 & 0.428 & 0.352 \\ 
+Com Velocidade & YOLOv11s & 2 & 7  & 3 & 4 & 0.375 & 0.363 & 0.571 & 0.444 \\ 
+Com Velocidade & YOLOv11m & 3 & 6  & 4 & 3 & 0.375 & 0.333 & 0.428 & 0.375 \\ 
+Com Velocidade & YOLOv11l & 3 & 6  & 5 & 2 & 0.312 & 0.250 & 0.285 & 0.266 \\ 
+Com Velocidade & YOLOv11x & 1 & 9  & 4 & 3 & 0.235 & 0.250 & 0.428 & 0.315 \\ 
+Sem Velocidade & YOLOv11m* & 2 & 16 & 2 & 5 & 0.280 & 0.238 & 0.714 & 0.357 \\ \hline
+\end{tabular}%
+}
+\textit{*Nota: O modelo YOLOv11m representa todos os modelos da escala no cenário sem velocidade, cujos resultados foram idênticos.}
+\end{table}
+
+Neste ambiente altamente dinâmico, a ausência de análise de velocidade provou-se inviável para produção,
+gerando alarmes falsos em massa (\textit{FP} = 16). A ativação da heurística reduziu drasticamente esses
+erros para apenas 6 no modelo \textit{YOLOv11m}. Observa-se que o modelo \textit{YOLOv11x} apresentou a 
+maior incidência de falsos positivos (\textit{FP} = 9), sugerindo que arquiteturas excessivamente profundas 
+tendem a sofrer de \textit{overfitting} nas características das \textit{bounding boxes} durante oclusões, 
+causando instabilidade no cálculo do centroide.
+
+    
+\textbf{No \textit{UR Fall Detection Dataset}}: Esta base pública acadêmica é caracterizada por gravações
+vídeos de quedas em ambientes controlados, com excelente iluminação e com a câmera posicionada de forma a
+capturar a movimentação de forma clara no eixo bidimensional. A Tabela ~\ref{tab:metricas-ur-fall} detalha
+os resultados obtidos neste conjunto de dados.
+
+\begin{table}[h!]
+\centering
+\small
+\caption{Métricas de detecção: Desempenho no \textit{Dataset: UR Fall Detection Dataset}.}
+\label{tab:metricas-ur-fall}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c|c}
+\hline
+\textbf{Cenário} & \textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Acurácia} & \textbf{Precisão (P)} & \textbf{Recall (R)} & \textbf{F1-Score} \\ \hline
+Com Velocidade & YOLOv11n  & 30 & 0 & 18 & 12 & 0.700 & 1.000 & 0.400 & 0.571 \\
+Com Velocidade & YOLOv11s  & 30 & 0 & 12 & 18 & 0.800 & 1.000 & 0.600 & 0.750 \\
+Com Velocidade & YOLOv11m  & 30 & 0 & 13 & 17 & 0.783 & 1.000 & 0.566 & 0.723 \\
+Com Velocidade & YOLOv11l  & 30 & 0 & 15 & 15 & 0.750 & 1.000 & 0.500 & 0.666 \\
+Com Velocidade & YOLOv11x  & 30 & 0 & 15 & 15 & 0.750 & 1.000 & 0.500 & 0.666 \\
+Sem Velocidade & YOLOv11m* & 28 & 2 & 10 & 20 & 0.800 & 0.909 & 0.666 & 0.769 \\ \hline
+\end{tabular}%
+}
+\textit{*Nota: O modelo YOLOv11m representa todos os modelos da escala no cenário sem velocidade, cujos resultados foram idênticos.}
+\end{table}
+
+Ao analisar a Tabela ~\ref{tab:metricas-ur-fall} pode-se comprovar o poder do limitador cinemático em
+ambientes controlados. Com a velocidade ativada, o sistema alcançou 100\% de Precisão (Zero Falsos Positivos)
+em todas as variantes da rede. O modelo \textit{YOLOv11s} atingiu o melhor equilíbrio (\textit{F1-Score} de 0.750)
+Embora o cenário puramente postural (Sem Velocidade) tenha um \textit{Recall} levemente maior, ele introduziu 
+Falsos Positivos (\textit{FP} = 2), demonstrando que a velocidade é indispensável para a confiabilidade do alerta.
+
+
+\textbf{Nos Vídeos de Domínio Público (Internet)}: Este conjunto serviu como teste de estresse focando em variação extrema de resolução e perspectiva (\textit{long shot}) e com deslocamento no eixo de profundidade (eixo Z).
+
+\begin{table}[h!]
+\centering
+\small
+\caption{Métricas de detecção: Desempenho no \textit{Dataset}: Vídeos Público.}
+\label{tab:metricas-videos-publico}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c|c}
+\hline
+\textbf{Cenário} & \textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Acurácia} & \textbf{Precisão (P)} & \textbf{Recall (R)} & \textbf{F1-Score} \\ \hline
+Com Velocidade & Todos & 2 & 0 & 1 & 0 & 0.666 & 0.000 & 0.000 & 0.000 \\ 
+Sem Velocidade & Todos & 1 & 4 & 0 & 1 & 0.333 & 0.200 & 1.000 & 0.333 \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+Os dados da Tabela ~\ref{tab:metricas-videos-publico} revelaram a principal vulnerabilidade do sistema cinemático
+bidimensional. Com a velocidade ativada, o sistema não conseguiu classificar as quedas (\textit{Recall} nulo), pois
+a distância da câmera reduziu o movimento absoluto em \textit{pixels} para um valor inferior ao limiar ($ v \ge 15.0$).
+Quando a velocidade foi desligada, o \textit{YOLO} detectou perfeitamente as quedas (\textit{Recall} 100\%), provando
+que a VC enxerga a ação, mas a heurística matemática a bloqueia pela falta de escala de profundidade.
+
+\subsection{Análise Quantitativa e Comparativo de Arquiteturas}
+
+A consolidação dos dados provenientes dos três cenários reflete a eficácia da abordagem proposta. 
+A Tabela ~\ref{tab:metricas-geral} apresenta o desempenho detalhado do escalonamento da arquitetura
+\textit{YOLOv11} sobre o total de eventos processados na avaliação global.
+
+\begin{table}[ht!]
+\centering
+\small
+\caption{Comparativo geral de métricas: Cenários com e sem limitador cinemático.}
+\label{tab:metricas-geral}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c|c}
+\hline
+\textbf{Cenário} & \textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Acurácia} & \textbf{Precisão (P)} & \textbf{Recall (R)} & \textbf{F1-Score} \\ \hline
+Com Velocidade & YOLOv11n & 34 & 7  & 23 & 15 & 0.620 & 0.681 & 0.394 & 0.500 \\ 
+Com Velocidade & YOLOv11s & 34 & 7  & 16 & 22 & 0.708 & 0.758 & 0.578 & 0.656 \\ 
+Com Velocidade & YOLOv11m & 34 & 6  & 18 & 20 & 0.696 & 0.769 & 0.526 & 0.625 \\ 
+Com Velocidade & YOLOv11l & 35 & 6  & 18 & 17 & 0.658 & 0.739 & 0.447 & 0.557 \\ 
+Com Velocidade & YOLOv11x & 33 & 9  & 20 & 18 & 0.637 & 0.666 & 0.473 & 0.553 \\ 
+Sem Velocidade & YOLOv11m & 31 & 22 & 12 & 26 & 0.626 & 0.541 & 0.684 & 0.604 \\ \hline
+\end{tabular}%
+}
+\textit{*Nota: O modelo YOLOv11m representa todos os modelos da escala no cenário sem velocidade,
+cujos resultados foram idênticos.}.
+\end{table}
+
+A análise da Tabela ~\ref{tab:metricas-geral} evidencia um comportamento contra-intuitivo: o aumento da
+complexidade da rede neural não se traduz em maior eficácia. O modelo \textit{YOLOv11s} antingiu a melhor 
+capacidade preditiva global (\textit{F1-Score} de 0.656), enquanto o escalonamento par arquiteturas 
+profundas (\textit{Large e Extra Large}) resultou em degradação das métricas. Do ponto de vista da VC, isso
+sugere que redes excessivamente complecas sofrem de instabilidade (\textit{overfitting} espacial) em cenários
+de oclusão comuns ao ambiente escolar. Nas arquiteturas maiores, a \textit{bounding boxes} oscila intersamente
+a cada quadro tentando se ajustar aos mínimos detalhes, gerando variações artificiais na posição do centroide.
+Esse ruído corrompe o cálculo cinemático de velocidade, provocando falsos positivos. Em contrapartida, modelos
+mais raros e generalistas (\textit{Small} e \textit{Medium}) atuam de forma mais estável no rastreamento contínuo,
+garantindo que a heurística bimodal funcione conforme o esperado.
+
+
+Outro ponto importante a ser evidenciado é que, sem o limitador de velocidade, a heurística  de Razão de Aspecto
+tornou-se o principal o gargalo do sistema sem velocidade. Como consequência, qualquer \textit{bounding box},
+independentemente da precisão do modelo, passou a acionar o critério de detecção, tornando irrelevantes os
+ganhos de precisão obtidos pelo modelo.
+
+\subsection{Limitação Cinemáticas (O gargalo do Eixo Z)}
+
+Embora a avaliação por eventos \textit{Event-Level} comprove a viabilidade da filtragem de ações voluntarias
+(como evidenciado pelo ganho expressivo de Precisão Global), o \textit{trade-off} com a métrica de
+\textit{Recall} expõe a necessidade de evolução da \textit{PoC}. O cálculo da velocidade euclidiana do
+centroide ($Cx, Cy$) em valores absolutos demonstrou-se inviável para captura de movimentos no eixo de
+profundidade (eixo Z)
+
+Conclui-se que o uso de caixas delimitadoras e cálculos bidimensionais resolve o problema de falso positivo
+na rotina escolar, mas futuras implementações devem buscar a normalização da velocidade de acordo com as 
+dimensões da caixa ou a adoção de técnicas de \textit{Pose Estimation} para garantir a detecção espacial
+correta em qualquer perspectiva.
+
+\section{Considerações Finais}
+
+Esta Prova de Conceito investigou a viabilidade de sistemas de Visão Computacional baseados na
+arquitetura \textit{YOLOv11} para identificação de ações de risco em salas e pátios escolares,
+sob uma perspectiva rigorosa de respeito à privacidade de dados. A adoção da métrica de uma
+avaliação em eventos (\textit{Event-Level}) provou ser essencial na pesquisa. Ao evitar as
+distorções estatísticas provocadas por flutuações momentâneas de inferência de detecção de
+\textit{bounding boxes}, essa abordagem refletiu com altíssima fidelidade a aplicação prática
+de um sistema de monitoramento preditivo.
+
+Os resultados já consolidados demonstram o sucesso da abordagem bimodal (Postura + Velocidade)
+na mitigação de alarmes falsos, que constitui um dos maiores gargalos operacionais na segurança
+eletrônica. Em ambientes controlados e com boa resolução focal, como o \textit{UR Fall Detection Dataset},
+a inserção da variável cinemática conferiu ao sistema uma precisão absoluta de 100\% de zero
+falsos positivos, em todas as variantes testadas. No panorama global, que integrou a complexidade
+de uma rotina escolar simulada e testes de estresse de vídeos de internet, a variante \textit{YOLOv11s}
+com filtro cinemático estabeleceu o melhor ponto de equilíbrio prático, alcançando uma Acurácia
+de 70,89\% e um \textit{F1-Score} de 0.656.
+
+Por outro lado, o experimento cumpriu seu papel científico ao mapear com precisão os limites
+físicos da abordagem bidimensional absoluta. A redução do \textit{Recall} observada nos vídeos
+de plano aberto e de domínio público revelou que a velocidade calculada em \textit{pixels}
+sem normalização de escala torna-se vulnerável a eventos que ocorrem no eixo de profundidade
+(eixo Z). Essa descoberta fundamenta cientificamente a necessidade de evolução da arquitetura
+do sistema para aplicações comerciais estáveis.
+
+\subsection{Trabalhos Futuros}
+
+Para superar os gargalos identificados e transicionar a solução para um ambiente de produção
+ativa, propõem-se os seguintes desdobramentos:
+
+\begin{enumerate}
+
+    \item \textbf{Normalização de Escala e Profundidade}: Substituir o cálculo de velocidade em \textit{pixels}
+    absolutos por uma métrica normalizada em relação à dimensão da \textit{bounding box} ou à altura média do
+    indivíduo na cena. Isso tornará o sistema flexível à distância da pessoa em relação à câmera.
+    \\
+    \item \textbf{Integração de \textit{Pose Estimation}}: A transição da análise baseada em caixas delimitadoras 
+    (\textit{bounding box}) para o rastreamento de pontos-chave do corpo (esqueletos) permitirá uma descrição
+    cinemática tridimensional, eliminando a ``cegueira'' do sistema para quedas no eixo Z.
+    
+\end{enumerate}
+
+Em última análise, este trabalho consolida a visão computacional como uma tecnologia viável e necessária 
+para a segurança escolar. A \textit{PoC} aqui desenvolvida serve como base tecnológica e ética para que
+futuras implementações possam elevar a segurança institucional, transformando a análise de dados brutos
+em um ambiente de proteção ativa para a comunidade escolar.
+
+\raggedright
+\bibliographystyle{sbc}
+\bibliography{sbc-template}
+
+\end{document}

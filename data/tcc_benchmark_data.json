@@ -1,0 +1,41 @@
+{
+  "metadados": {
+    "titulo": "Aplicação de Visão Computacional para Prevenção de Acidentes em Ambientes Escolares: Uma Prova de Conceito (PoC)",
+    "autores": [
+      "Brendo A. Soares",
+      "Wener B. de Sampaio",
+      "Martony D. da Silva"
+    ],
+    "instituicao": "Centro de Educação Aberta e a Distância -- Universidade Federal do Piauí (UFPI)",
+    "paradigma_avaliacao": "Event-Level Evaluation",
+    "total_eventos": 79
+  },
+  "tabela_1_simulado": [
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11n", "tn": 2, "fp": 7, "fn": 4, "tp": 3, "acuracia": 0.312, "precisao": 0.300, "recall": 0.428, "f1_score": 0.352},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11s", "tn": 2, "fp": 7, "fn": 3, "tp": 4, "acuracia": 0.375, "precisao": 0.363, "recall": 0.571, "f1_score": 0.444},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11m", "tn": 3, "fp": 6, "fn": 4, "tp": 3, "acuracia": 0.375, "precisao": 0.333, "recall": 0.428, "f1_score": 0.375},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11l", "tn": 3, "fp": 6, "fn": 5, "tp": 2, "acuracia": 0.312, "precisao": 0.250, "recall": 0.285, "f1_score": 0.266},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11x", "tn": 1, "fp": 9, "fn": 4, "tp": 3, "acuracia": 0.235, "precisao": 0.250, "recall": 0.428, "f1_score": 0.315},
+    {"cenario": "Sem Velocidade", "modelo": "YOLOv11m*", "tn": 2, "fp": 16, "fn": 2, "tp": 5, "acuracia": 0.280, "precisao": 0.238, "recall": 0.714, "f1_score": 0.357}
+  ],
+  "tabela_2_ur_fall": [
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11n", "tn": 30, "fp": 0, "fn": 18, "tp": 12, "acuracia": 0.700, "precisao": 1.000, "recall": 0.400, "f1_score": 0.571},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11s", "tn": 30, "fp": 0, "fn": 12, "tp": 18, "acuracia": 0.800, "precisao": 1.000, "recall": 0.600, "f1_score": 0.750},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11m", "tn": 30, "fp": 0, "fn": 13, "tp": 17, "acuracia": 0.783, "precisao": 1.000, "recall": 0.566, "f1_score": 0.723},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11l", "tn": 30, "fp": 0, "fn": 15, "tp": 15, "acuracia": 0.750, "precisao": 1.000, "recall": 0.500, "f1_score": 0.666},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11x", "tn": 30, "fp": 0, "fn": 15, "tp": 15, "acuracia": 0.750, "precisao": 1.000, "recall": 0.500, "f1_score": 0.666},
+    {"cenario": "Sem Velocidade", "modelo": "YOLOv11m*", "tn": 28, "fp": 2, "fn": 10, "tp": 20, "acuracia": 0.800, "precisao": 0.909, "recall": 0.666, "f1_score": 0.769}
+  ],
+  "tabela_3_publico": [
+    {"cenario": "Com Velocidade", "modelo": "Todos (v11n-x)", "tn": 2, "fp": 0, "fn": 1, "tp": 0, "acuracia": 0.666, "precisao": 0.000, "recall": 0.000, "f1_score": 0.000},
+    {"cenario": "Sem Velocidade", "modelo": "Todos (v11n-x)", "tn": 1, "fp": 4, "fn": 0, "tp": 1, "acuracia": 0.333, "precisao": 0.200, "recall": 1.000, "f1_score": 0.333}
+  ],
+  "tabela_4_geral": [
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11n", "tn": 34, "fp": 7, "fn": 23, "tp": 15, "acuracia": 0.620, "precisao": 0.681, "recall": 0.394, "f1_score": 0.500},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11s", "tn": 34, "fp": 7, "fn": 16, "tp": 22, "acuracia": 0.708, "precisao": 0.758, "recall": 0.578, "f1_score": 0.656},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11m", "tn": 34, "fp": 6, "fn": 18, "tp": 20, "acuracia": 0.696, "precisao": 0.769, "recall": 0.526, "f1_score": 0.625},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11l", "tn": 35, "fp": 6, "fn": 18, "tp": 17, "acuracia": 0.658, "precisao": 0.739, "recall": 0.447, "f1_score": 0.557},
+    {"cenario": "Com Velocidade", "modelo": "YOLOv11x", "tn": 33, "fp": 9, "fn": 20, "tp": 18, "acuracia": 0.637, "precisao": 0.666, "recall": 0.473, "f1_score": 0.553},
+    {"cenario": "Sem Velocidade", "modelo": "YOLOv11m*", "tn": 31, "fp": 22, "fn": 12, "tp": 26, "acuracia": 0.626, "precisao": 0.541, "recall": 0.684, "f1_score": 0.604}
+  ]
+}

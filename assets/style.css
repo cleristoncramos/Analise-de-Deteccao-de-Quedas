@@ -1,0 +1,70 @@
+/* Estilos Customizados para o Sistema de Detecção de Quedas - TCC UFPI */
+
+/* Container geral e espaçamento */
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
+}
+
+/* Títulos com gradiente moderno */
+h1 {
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+}
+
+h2, h3 {
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+}
+
+/* Badges e tags */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-risk {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-safe {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.badge-warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Estilização de tabelas e dataframes */
+.stDataFrame {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Estilo para caixas de código e notas */
+.stAlert {
+    border-radius: 10px !important;
+}
+
+/* Efeito de destaque para métricas */
+div[data-testid="stMetricValue"] {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #38bdf8 !important;
+}
