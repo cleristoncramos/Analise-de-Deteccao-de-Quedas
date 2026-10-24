@@ -4,16 +4,23 @@ import time
 
 import cv2
 import streamlit as st
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import MODELOS_TCC, carregar_modelo, processar_frame_detector, reiniciar_rastreamento
+from pages_modules.camera_navegador import CONFIGURACAO_RTC, TRADUCOES, ParametrosAnalise, ProcessadorCamera
 
 MODO_COM = "Bimodal (Com Velocidade - Proposta)"
 MODO_SEM = "Estático (Sem Velocidade - Linha de Base)"
 MODO_AB = "Comparativo Lado a Lado (A/B: Sem vs Com Velocidade)"
+
+FONTE_UPLOAD = "Upload de Arquivo de Vídeo"
+FONTE_AMOSTRA = "Amostra Pré-Carregada"
+FONTE_NAVEGADOR = "Câmera do Navegador"
+FONTE_SERVIDOR = "Webcam do Servidor (uso local)"
 
 
 def obter_modelo_da_sessao(model_name: str):
@@ -74,6 +81,55 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
     return quedas
 
 
+def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
+    """Análise ao vivo da câmera de quem acessa a página, via WebRTC."""
+    st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. Em redes muito restritas "
+               "(firewalls corporativos) a conexão pode não se estabelecer, pois o sistema não usa servidor TURN.")
+
+    with st.spinner("Carregando o modelo..."):
+        modelo = obter_modelo_da_sessao(parametros.modelo)
+
+    ctx = webrtc_streamer(
+        key=f"camera_navegador_{parametros.modelo}",
+        mode=WebRtcMode.SENDRECV,
+        rtc_configuration=CONFIGURACAO_RTC,
+        media_stream_constraints={"video": True, "audio": False},
+        video_processor_factory=lambda: ProcessadorCamera(modelo, parametros),
+        async_processing=True,
+        translations=TRADUCOES,
+    )
+    if modo_execucao == MODO_AB:
+        st.caption("Imagem da esquerda: sem velocidade (linha de base). Direita: com velocidade (proposta).")
+
+    col1, col2, col3 = st.columns(3)
+    m_fps, m_pessoas, m_quedas = col1.empty(), col2.empty(), col3.empty()
+    alerta = st.empty()
+    tabela = st.empty()
+
+    while ctx.state.playing:
+        processador = ctx.video_processor
+        if processador is not None:
+            processador.atualizar_parametros(parametros)
+            while not processador.eventos.empty():
+                st.session_state.historico_eventos.append(processador.eventos.get_nowait())
+            m = processador.metricas()
+            m_fps.metric("FPS", f"{m['fps']:.1f}")
+            m_pessoas.metric("Pessoas em Cena", m["pessoas"])
+            if modo_execucao == MODO_AB:
+                m_quedas.metric("Quedas (Com / Sem Vel.)", f"{m['quedas_com']} / {m['quedas_sem']}")
+            else:
+                m_quedas.metric("Quedas Registradas",
+                                m["quedas_com"] if parametros.executar_com else m["quedas_sem"])
+            if m["ultima_queda_frame"] is not None and m["frame"] - m["ultima_queda_frame"] < 60:
+                alerta.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {m['ultima_queda_frame']}!**")
+            else:
+                alerta.empty()
+            recentes = [e for e in st.session_state.historico_eventos if e["Fonte"] == "Câmera do navegador"]
+            if recentes:
+                tabela.dataframe(recentes[-8:][::-1], width="stretch", hide_index=True)
+        time.sleep(0.5)
+
+
 def render_estudio_inferencia():
     st.title("Estúdio de Inferência e Detecção")
     st.caption("Bancada de testes interativa para execução dos modelos YOLOv11 com análise cinemática e postural")
@@ -120,24 +176,36 @@ def render_estudio_inferencia():
         )
 
     # Seleção da fonte de vídeo
-    col_fonte1, _ = st.columns([2, 1])
-    with col_fonte1:
-        tipo_fonte = st.radio(
-            "Fonte de Entrada",
-            ["Upload de Arquivo de Vídeo", "Amostra Pré-Carregada", "Webcam Local"],
-            horizontal=True
-        )
+    tipo_fonte = st.radio(
+        "Fonte de Entrada",
+        [FONTE_UPLOAD, FONTE_AMOSTRA, FONTE_NAVEGADOR, FONTE_SERVIDOR],
+        horizontal=True
+    )
+
+    # Inicialização do histórico de eventos na sessão
+    if "historico_eventos" not in st.session_state:
+        st.session_state.historico_eventos = []
+
+    if tipo_fonte == FONTE_NAVEGADOR:
+        render_camera_navegador(ParametrosAnalise(
+            executar_com=modo_execucao in (MODO_COM, MODO_AB),
+            executar_sem=modo_execucao in (MODO_SEM, MODO_AB),
+            conf_min=conf_min, limiar_ar=limiar_ar, limiar_vel=limiar_vel, limiar_prox=limiar_prox,
+            resolucao_alvo=resolucao_alvo, corrigir_fps=corrigir_fps, carencia_s=carencia_s,
+            modelo=modelo_selecionado,
+        ), modo_execucao)
+        return
 
     caminho_video = None
     origem_rotulo = "Vídeo"
 
-    if tipo_fonte == "Upload de Arquivo de Vídeo":
+    if tipo_fonte == FONTE_UPLOAD:
         arquivo_upload = st.file_uploader("Selecione um vídeo (.mp4, .avi, .mov)", type=["mp4", "avi", "mov"])
         if arquivo_upload is not None:
             caminho_video = salvar_upload_temporario(arquivo_upload)
             origem_rotulo = arquivo_upload.name
 
-    elif tipo_fonte == "Amostra Pré-Carregada":
+    elif tipo_fonte == FONTE_AMOSTRA:
         pasta_videos = "videos"
         os.makedirs(pasta_videos, exist_ok=True)
         amostras = sorted(f for f in os.listdir(pasta_videos) if f.lower().endswith((".mp4", ".avi", ".mov")))
@@ -146,16 +214,13 @@ def render_estudio_inferencia():
             caminho_video = os.path.join(pasta_videos, video_escolhido)
             origem_rotulo = video_escolhido
         else:
-            st.warning("Nenhum vídeo encontrado na pasta `videos/`. Faça o upload de um arquivo ou use a Webcam.")
+            st.warning("Nenhum vídeo encontrado na pasta `videos/`. Faça o upload de um arquivo ou use a câmera do navegador.")
 
-    elif tipo_fonte == "Webcam Local":
-        st.caption("A webcam usada é a do computador que executa o Streamlit (não a do navegador).")
+    elif tipo_fonte == FONTE_SERVIDOR:
+        st.caption("Usa a câmera do computador que executa o Streamlit. Serve apenas quando o sistema roda na "
+                   "sua própria máquina; na versão publicada, use a Câmera do Navegador.")
         caminho_video = 0
-        origem_rotulo = "Webcam"
-
-    # Inicialização do histórico de eventos na sessão
-    if "historico_eventos" not in st.session_state:
-        st.session_state.historico_eventos = []
+        origem_rotulo = "Webcam do servidor"
 
     st.divider()
 
@@ -185,7 +250,13 @@ def render_estudio_inferencia():
 
     cap = cv2.VideoCapture(caminho_video)
     if not cap.isOpened():
-        st.error("Falha ao abrir a fonte de vídeo.")
+        if caminho_video == 0:
+            st.error("Não foi possível abrir uma câmera neste servidor. Isso é esperado na versão publicada "
+                     "(Streamlit Cloud), que roda em um servidor sem câmera. Escolha **Câmera do Navegador** "
+                     "para usar a câmera do seu dispositivo.")
+        else:
+            st.error("Não foi possível abrir o vídeo selecionado. Verifique se o arquivo não está corrompido "
+                     "e se o formato é .mp4, .avi ou .mov.")
         return
 
     fps_video = cap.get(cv2.CAP_PROP_FPS)
