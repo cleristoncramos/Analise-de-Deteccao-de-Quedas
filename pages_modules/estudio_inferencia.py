@@ -11,7 +11,7 @@ from core.heuristics import analisar_interacoes
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import MODELOS_TCC, carregar_modelo, processar_frame_detector, reiniciar_rastreamento
-from pages_modules.camera_navegador import CONFIGURACAO_RTC, TRADUCOES, ParametrosAnalise, ProcessadorCamera
+from pages_modules.camera_navegador import TRADUCOES, ParametrosAnalise, ProcessadorCamera, obter_configuracao_rtc
 
 MODO_COM = "Bimodal (Com Velocidade - Proposta)"
 MODO_SEM = "Estático (Sem Velocidade - Linha de Base)"
@@ -83,8 +83,16 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
 
 def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
     """Análise ao vivo da câmera de quem acessa a página, via WebRTC."""
-    st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. Em redes muito restritas "
-               "(firewalls corporativos) a conexão pode não se estabelecer, pois o sistema não usa servidor TURN.")
+    configuracao_rtc, com_turn, erro_turn = obter_configuracao_rtc()
+    if com_turn:
+        st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. A conexão usa um servidor TURN "
+                   "para atravessar firewalls e redes com NAT.")
+    else:
+        st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. Sem servidor TURN configurado, "
+                   "a conexão só funciona em redes abertas (como na execução local); no app publicado é preciso "
+                   "configurar o TURN nos Secrets (veja o README).")
+    if erro_turn:
+        st.caption(f"Não foi possível obter as credenciais TURN ({erro_turn}); usando apenas STUN.")
 
     with st.spinner("Carregando o modelo..."):
         modelo = obter_modelo_da_sessao(parametros.modelo)
@@ -92,7 +100,7 @@ def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
     ctx = webrtc_streamer(
         key=f"camera_navegador_{parametros.modelo}",
         mode=WebRtcMode.SENDRECV,
-        rtc_configuration=CONFIGURACAO_RTC,
+        rtc_configuration=configuracao_rtc,
         media_stream_constraints={"video": True, "audio": False},
         video_processor_factory=lambda: ProcessadorCamera(modelo, parametros),
         async_processing=True,

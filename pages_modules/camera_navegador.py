@@ -5,23 +5,26 @@ Streamlit Cloud esse computador é um servidor sem câmera. Com o streamlit-webr
 a imagem vem da câmera de quem acessa a página, e cada quadro é processado no
 servidor por um `ProcessadorCamera` exclusivo daquela conexão.
 """
+import json
 import queue
 import threading
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 import av
 import cv2
+import streamlit as st
 from streamlit_webrtc import VideoProcessorBase
 
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
+from core.ice_servers import montar_ice_servers, tem_turn
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import processar_frame_detector, reiniciar_rastreamento
 
 FPS_REFERENCIA = 30.0
-CONFIGURACAO_RTC = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 TRADUCOES = {
     "start": "Ligar câmera",
     "stop": "Desligar câmera",
@@ -31,6 +34,33 @@ TRADUCOES = {
     "device_not_available": "Nenhuma câmera encontrada.",
     "device_access_denied": "O acesso à câmera foi negado.",
 }
+
+
+def _para_dict(valor):
+    """Converte a seção dos secrets (AttrDict aninhado) em dict/list comuns."""
+    if isinstance(valor, Mapping):
+        return {k: _para_dict(v) for k, v in valor.items()}
+    if isinstance(valor, (list, tuple)):
+        return [_para_dict(v) for v in valor]
+    return valor
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _configuracao_em_cache(turn_json: str):
+    return montar_ice_servers(json.loads(turn_json) if turn_json else None)
+
+
+def obter_configuracao_rtc():
+    """Retorna (rtc_configuration, com_turn, erro) a partir da seção [turn] dos secrets."""
+    try:
+        turn = st.secrets.get("turn")
+    except Exception:  # sem secrets.toml (execução local)
+        turn = None
+    turn_json = json.dumps(_para_dict(turn), sort_keys=True) if turn else ""
+    servidores, _origem, erro = _configuracao_em_cache(turn_json)
+    if erro:
+        _configuracao_em_cache.clear()  # não guarda a falha: tenta de novo na próxima execução
+    return {"iceServers": servidores}, tem_turn(servidores), erro
 
 
 @dataclass

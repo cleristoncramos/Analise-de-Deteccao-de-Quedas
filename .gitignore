@@ -11,3 +11,4 @@ modelos/*.pt
 *.pt
 relatorios/
 !assets/video/*.mp4
+.streamlit/secrets.toml

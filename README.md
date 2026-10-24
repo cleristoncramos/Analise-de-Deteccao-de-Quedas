@@ -81,6 +81,23 @@ A interface disponibiliza:
 4. **Auditoria & Logs**: Registro detalhado das ocorrências com exportação para CSV, Excel e PDF técnico.
 5. **Laboratório Experimental**: Simulação da velocidade normalizada para mitigação do Eixo Z e conceitos de Pose Estimation.
 
+### Câmera do navegador no app publicado (TURN)
+
+A opção **Câmera do Navegador** do Estúdio de Inferência usa WebRTC. Localmente basta o STUN público, mas no Streamlit Community Cloud o servidor fica atrás de NAT e a conexão de vídeo precisa de um servidor TURN; sem ele, a câmera fica em "Connection is taking longer than expected" com a imagem preta.
+
+1. Crie uma conta gratuita em [metered.ca](https://www.metered.ca/), abra **TURN Server** e anote o nome do app (o subdomínio de `<app>.metered.live`) e a **API key**.
+2. No Streamlit Cloud, abra **Manage app > Settings > Secrets** e cole:
+
+   ```toml
+   [turn]
+   metered_app = "nome-do-app"
+   metered_api_key = "sua-api-key"
+   ```
+
+3. Salve e reinicie o app. A legenda abaixo da opção passa a indicar que a conexão usa TURN.
+
+Também é possível usar Twilio ou uma lista fixa de servidores; o modelo com todos os campos está em `.streamlit/secrets.toml.example`. Para testar localmente, copie esse arquivo para `.streamlit/secrets.toml`, que não é versionado.
+
 ## Observações sobre os dados
 
 Dois pontos das tabelas do artigo (`data/tcc_benchmark_data.json`) ainda precisam ser conferidos na contagem original. Eles ficam registrados no campo `metadados.pendencias` e não são exibidos na interface:
