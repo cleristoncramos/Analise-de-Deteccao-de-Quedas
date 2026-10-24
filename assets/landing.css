@@ -1,0 +1,633 @@
+/* Página inicial: estilo de landing page, mantendo a identidade acadêmica
+   (cantos retos, bordas finas, papel, azul-marinho, vinho e ocre). */
+
+@property --lp-n {
+    syntax: '<integer>';
+    inherits: false;
+    initial-value: 0;
+}
+
+[data-testid="stMainBlockContainer"] {
+    max-width: 1240px;
+    padding-top: 1.2rem;
+}
+
+/* ---------- Animações ---------- */
+
+@keyframes lp-surgir {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes lp-conta {
+    to { --lp-n: var(--alvo); }
+}
+
+@keyframes lp-rolar {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@keyframes lp-progresso {
+    0% { width: 0; }
+    90%, 100% { width: 100%; }
+}
+
+@keyframes lp-acende {
+    0%, 2% { background: var(--papel); color: var(--tinta); }
+    6%, 24% { background: var(--marinho); color: var(--papel); }
+    28%, 100% { background: var(--papel); color: var(--tinta); }
+}
+
+@keyframes lp-destaca {
+    0%, 2% { border-color: var(--borda-discreta); }
+    6%, 24% { border-color: var(--marinho); box-shadow: 5px 5px 0 var(--marinho); }
+    28%, 100% { border-color: var(--borda-discreta); box-shadow: none; }
+}
+
+@keyframes lp-pulso {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+
+@keyframes lp-sublinhar {
+    from { background-size: 0 3px; }
+    to { background-size: 100% 3px; }
+}
+
+.lp-entrada { animation: lp-surgir 0.8s cubic-bezier(.2, .7, .2, 1) both; }
+.lp-d1 { animation-delay: 0.1s; }
+.lp-d2 { animation-delay: 0.25s; }
+.lp-d3 { animation-delay: 0.4s; }
+.lp-d4 { animation-delay: 0.55s; }
+
+/* Revela as seções conforme a rolagem, onde o navegador suporta */
+@supports (animation-timeline: view()) {
+    .lp-revelar {
+        animation: lp-surgir linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 28%;
+    }
+}
+
+/* ---------- Barra superior ---------- */
+
+.lp-marca {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lp-marca .selo {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    background: var(--marinho);
+    color: var(--papel);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: 1px solid var(--borda);
+}
+
+.lp-marca .nome {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.15;
+    color: var(--tinta);
+}
+
+.lp-marca .sub {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--tinta-suave);
+}
+
+.st-key-lp_nav {
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ---------- Hero ---------- */
+
+.lp-rotulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--vinho);
+    font-weight: 600;
+    border: 1px solid var(--vinho);
+    padding: 0.25rem 0.6rem;
+}
+
+.lp-rotulo .ponto {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--vinho);
+    animation: lp-pulso 1.6s ease-in-out infinite;
+}
+
+.lp-titulo {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    color: var(--tinta);
+    margin: 1rem 0 1rem 0;
+}
+
+.lp-titulo em {
+    font-style: normal;
+    color: var(--marinho);
+    background-image: linear-gradient(var(--ocre), var(--ocre));
+    background-repeat: no-repeat;
+    background-position: 0 95%;
+    background-size: 0 3px;
+    animation: lp-sublinhar 1.1s 0.9s ease-out forwards;
+}
+
+.lp-frase {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 1.28rem;
+    line-height: 1.45;
+    color: var(--marinho);
+    border-left: 3px solid var(--vinho);
+    padding-left: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.lp-descricao {
+    color: var(--tinta-suave);
+    line-height: 1.65;
+    font-size: 1rem;
+    margin-bottom: 1.1rem;
+}
+
+.lp-selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin-top: 0.9rem;
+    font-size: 0.78rem;
+    color: var(--tinta-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.lp-selos span::before {
+    content: "■";
+    color: var(--ocre);
+    margin-right: 0.4rem;
+}
+
+/* Monitor com o vídeo */
+.st-key-lp_monitor {
+    border: 1px solid var(--borda);
+    background: #121417;
+    padding: 0 !important;
+    gap: 0 !important;
+    box-shadow: 10px 10px 0 var(--tinta);
+    animation: lp-surgir 0.9s 0.3s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.st-key-lp_monitor .stMarkdown,
+.st-key-lp_monitor [data-testid="stMarkdownContainer"],
+.st-key-lp_monitor [data-testid="stElementContainer"] {
+    margin: 0 !important;
+}
+
+.st-key-lp_monitor video {
+    display: block;
+    width: 100%;
+}
+
+.lp-monitor-topo, .lp-monitor-base {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0.75rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: #d9d6cf;
+    text-transform: uppercase;
+}
+
+.lp-monitor-topo { border-bottom: 1px solid #2c3036; }
+.lp-monitor-base { border-top: 1px solid #2c3036; color: #a9a59c; }
+
+.lp-ao-vivo { display: inline-flex; align-items: center; gap: 0.45rem; color: #f0c9c4; }
+
+.lp-ao-vivo::before {
+    content: "";
+    width: 0.55rem;
+    height: 0.55rem;
+    background: #c0392b;
+    animation: lp-pulso 1.2s ease-in-out infinite;
+}
+
+/* ---------- Faixa de resultados em rolagem ---------- */
+
+.lp-faixa {
+    overflow: hidden;
+    border-top: 1px solid var(--borda);
+    border-bottom: 1px solid var(--borda);
+    background: var(--tinta);
+    color: var(--papel);
+    margin: 0.6rem 0;
+}
+
+.lp-faixa-trilho {
+    display: flex;
+    width: max-content;
+    animation: lp-rolar 45s linear infinite;
+}
+
+.lp-faixa:hover .lp-faixa-trilho { animation-play-state: paused; }
+
+.lp-faixa-trilho span {
+    padding: 0.7rem 1.6rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    border-right: 1px solid #3a3a37;
+}
+
+.lp-faixa-trilho b { color: #e3c77f; font-weight: 600; }
+
+/* ---------- Números ---------- */
+
+.lp-numeros {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+}
+
+.lp-numeros > div {
+    padding: 1.2rem 1.3rem;
+    border-right: 1px solid var(--borda-discreta);
+    transition: background 0.25s ease;
+}
+
+.lp-numeros > div:last-child { border-right: none; }
+.lp-numeros > div:hover { background: var(--papel-escuro); }
+
+.lp-num {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--marinho);
+    counter-reset: lp var(--lp-n);
+    animation: lp-conta 2.2s 0.4s cubic-bezier(.2, .7, .2, 1) forwards;
+}
+
+.lp-num::before { content: attr(data-antes); }
+.lp-num::after { content: counter(lp) attr(data-depois); }
+
+.lp-num-legenda {
+    margin-top: 0.45rem;
+    font-size: 0.82rem;
+    color: var(--tinta-suave);
+    line-height: 1.4;
+}
+
+/* ---------- Cabeçalhos de seção ---------- */
+
+.lp-secao {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    border-bottom: 1px solid var(--borda);
+    padding-bottom: 0.5rem;
+    margin: 2.2rem 0 1.2rem 0;
+}
+
+.lp-secao .num {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--vinho);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+}
+
+.lp-secao h2 {
+    font-family: 'Source Serif 4', Georgia, serif !important;
+    font-size: 1.9rem !important;
+    margin: 0.1rem 0 0 0 !important;
+    padding: 0 !important;
+}
+
+.lp-secao p {
+    margin: 0;
+    max-width: 26rem;
+    color: var(--tinta-suave);
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+/* ---------- Cards informativos ---------- */
+
+.lp-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.lp-card {
+    border: 1px solid var(--borda);
+    background: #fbfaf7;
+    padding: 1.2rem 1.2rem 1.3rem 1.2rem;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.lp-card::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    height: 4px;
+    width: 0;
+    background: var(--cor, var(--marinho));
+    transition: width 0.35s ease;
+}
+
+.lp-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 6px 6px 0 var(--tinta);
+    background: #fffefb;
+}
+
+.lp-card:hover::before { width: calc(100% + 2px); }
+
+.lp-icone {
+    font-family: 'Material Symbols Rounded';
+    font-size: 1.7rem;
+    line-height: 1;
+    color: var(--cor, var(--marinho));
+    border: 1px solid currentColor;
+    width: 2.8rem;
+    height: 2.8rem;
+    display: grid;
+    place-items: center;
+    font-feature-settings: 'liga';
+}
+
+.lp-card .rotulo {
+    margin-top: 0.9rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cor, var(--marinho));
+    font-weight: 600;
+}
+
+.lp-card h3 {
+    font-family: 'Source Serif 4', Georgia, serif !important;
+    font-size: 1.2rem !important;
+    margin: 0.25rem 0 0.5rem 0 !important;
+    padding: 0 !important;
+}
+
+.lp-card p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--tinta-suave);
+    margin: 0;
+}
+
+.lp-card .dado {
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--borda-discreta);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 600;
+    color: var(--tinta);
+}
+
+/* ---------- Tutorial em linha do tempo ---------- */
+
+.lp-tutorial { position: relative; }
+
+.lp-trilho {
+    position: relative;
+    height: 2px;
+    background: var(--borda-discreta);
+    margin: 1.6rem 12.5% 0 12.5%;
+}
+
+.lp-trilho::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -1px;
+    height: 4px;
+    background: var(--vinho);
+    animation: lp-progresso 10s linear infinite;
+}
+
+.lp-etapas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: -1.35rem;
+}
+
+.lp-etapa { text-align: center; }
+
+.lp-no {
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--borda);
+    background: var(--papel);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    animation: lp-acende 10s linear infinite;
+}
+
+.lp-etapa-corpo {
+    margin-top: 0.9rem;
+    text-align: left;
+    border: 1px solid var(--borda-discreta);
+    background: #fbfaf7;
+    padding: 1rem 1.05rem;
+    min-height: 10.5rem;
+    animation: lp-destaca 10s linear infinite;
+}
+
+.lp-etapa:nth-child(2) .lp-no, .lp-etapa:nth-child(2) .lp-etapa-corpo { animation-delay: 2.25s; }
+.lp-etapa:nth-child(3) .lp-no, .lp-etapa:nth-child(3) .lp-etapa-corpo { animation-delay: 4.5s; }
+.lp-etapa:nth-child(4) .lp-no, .lp-etapa:nth-child(4) .lp-etapa-corpo { animation-delay: 6.75s; }
+
+.lp-etapa-corpo h4 {
+    font-family: 'Source Serif 4', Georgia, serif !important;
+    font-size: 1.08rem !important;
+    margin: 0 0 0.4rem 0 !important;
+    padding: 0 !important;
+}
+
+.lp-etapa-corpo p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--tinta-suave);
+}
+
+.lp-etapa-corpo code {
+    font-size: 0.8rem;
+    background: var(--papel-escuro);
+    color: var(--vinho);
+    padding: 0 0.25rem;
+}
+
+/* ---------- Primeiros passos ---------- */
+
+.lp-passos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--borda);
+    border-left: 1px solid var(--borda);
+}
+
+.lp-passo {
+    border-right: 1px solid var(--borda);
+    border-bottom: 1px solid var(--borda);
+    background: #fbfaf7;
+    padding: 1.2rem 1.25rem 1.3rem 1.25rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+.lp-passo .n {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--vinho);
+    transition: color 0.25s ease;
+}
+
+.lp-passo h4 {
+    font-family: 'Source Serif 4', Georgia, serif !important;
+    font-size: 1.05rem !important;
+    margin: 0 0 0.3rem 0 !important;
+    padding: 0 !important;
+    transition: color 0.25s ease;
+}
+
+.lp-passo p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--tinta-suave);
+    transition: color 0.25s ease;
+}
+
+.lp-passo:hover { background: var(--marinho); }
+.lp-passo:hover .n { color: var(--papel); -webkit-text-stroke: 0; }
+.lp-passo:hover h4, .lp-passo:hover p { color: var(--papel) !important; }
+
+/* ---------- Chamada final ---------- */
+
+.st-key-lp_cta {
+    background: var(--marinho);
+    border: 1px solid var(--borda);
+    padding: 2rem 2.2rem !important;
+    margin-top: 2.4rem;
+    box-shadow: 10px 10px 0 var(--vinho);
+}
+
+.st-key-lp_cta .lp-cta-titulo {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--papel);
+    line-height: 1.15;
+}
+
+.st-key-lp_cta .lp-cta-texto {
+    color: #d5dbe3;
+    margin-top: 0.4rem;
+    max-width: 40rem;
+}
+
+.st-key-lp_cta .stButton > button {
+    background: var(--papel) !important;
+    color: var(--marinho) !important;
+    border-color: var(--papel) !important;
+}
+
+.st-key-lp_cta .stButton > button:hover {
+    background: #e3c77f !important;
+    border-color: #e3c77f !important;
+}
+
+/* ---------- Rodapé ---------- */
+
+.lp-rodape {
+    margin-top: 2.6rem;
+    border-top: 3px double var(--borda);
+    padding-top: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--tinta-suave);
+}
+
+/* ---------- Telas menores ---------- */
+
+@media (max-width: 900px) {
+    .lp-cards { grid-template-columns: repeat(2, 1fr); }
+    .lp-passos { grid-template-columns: repeat(2, 1fr); }
+    .lp-numeros { grid-template-columns: repeat(2, 1fr); }
+    .lp-numeros > div:nth-child(2) { border-right: none; }
+    .lp-numeros > div:nth-child(-n+2) { border-bottom: 1px solid var(--borda-discreta); }
+    .lp-secao { flex-direction: column; align-items: flex-start; }
+    .lp-secao p { text-align: left; }
+}
+
+@media (max-width: 640px) {
+    .lp-cards, .lp-passos { grid-template-columns: 1fr; }
+    .lp-trilho { display: none; }
+    .lp-etapas { grid-template-columns: 1fr; margin-top: 0; }
+    .lp-etapa { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; text-align: left; }
+    .lp-etapa-corpo { margin-top: 0; min-height: 0; }
+    .lp-num { font-size: 2rem; }
+    .st-key-lp_monitor { box-shadow: 6px 6px 0 var(--tinta); }
+    .lp-monitor-base { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+}
+
+/* ---------- Movimento reduzido ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-entrada, .lp-revelar, .st-key-lp_monitor, .lp-faixa-trilho, .lp-trilho::after, .lp-no,
+    .lp-etapa-corpo, .lp-rotulo .ponto, .lp-ao-vivo::before, .lp-titulo em {
+        animation: none !important;
+    }
+    .lp-num { animation: none; --lp-n: var(--alvo); }
+    .lp-titulo em { background-size: 100% 3px; }
+    .lp-faixa-trilho { flex-wrap: wrap; width: auto; }
+    .lp-trilho::after { width: 100%; }
+}

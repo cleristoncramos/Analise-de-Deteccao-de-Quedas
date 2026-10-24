@@ -12,8 +12,8 @@ def render_visao_geral():
         *Centro de Educação Aberta e a Distância (CEAD)*  
         *Curso Superior de Tecnologia em Gestão de Dados (CSTGD)*  
         
-        **Autor**: Brendo A. Soares  
-        **Orientadores**: Wener B. de Sampaio e Martony D. da Silva  
+        **Autor**: Brendo Alves Soares  
+        **Orientadores**: Wener Borges de Sampaio e Martony Demes da Silva  
         **Paradigma de Avaliação**: *Event-Level Evaluation* (79 eventos contínuos)
         """)
     with col2:

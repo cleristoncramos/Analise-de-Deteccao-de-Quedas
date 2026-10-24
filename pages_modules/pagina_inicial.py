@@ -7,145 +7,228 @@ from pages_modules.navegacao import PAGINA_ACADEMICA, PAGINA_SISTEMA, ir_para
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 VIDEO_APRESENTACAO = ASSETS / "video" / "apresentacao.mp4"
-ANIMACAO_DEMO = ASSETS / "demo_heuristica.gif"
+CSS_LANDING = ASSETS / "landing.css"
+
+FAIXA_RESULTADOS = [
+    "<b>79</b> eventos avaliados no paradigma event-level",
+    "<b>YOLOv11s</b> com acurácia de 70,8% e F1 de 0,656",
+    "Falsos positivos de <b>22 para 6</b> com o limitador de velocidade",
+    "<b>100%</b> de precisão no UR Fall Detection Dataset",
+    "Três bases: escola simulada, <b>UR Fall</b> e vídeos públicos",
+    "Regra de queda: <b>AR &lt; 0,75</b> e <b>v ≥ 15 px/f</b>",
+]
+
+NUMEROS = [
+    # (alvo, antes, depois, legenda)
+    (79, "", "", "eventos contínuos avaliados (event-level)"),
+    (656, "0,", "", "de F1-score no YOLOv11s, o melhor equilíbrio"),
+    (6, "", "", "falsos positivos com velocidade, contra 22 sem ela"),
+    (100, "", "%", "de precisão no UR Fall Detection Dataset"),
+]
+
+CARDS = [
+    ("report", "#7b2d26", "O problema", "Quedas na escola",
+     "Quedas respondem por quase 60% dos atendimentos de emergência de crianças em ambiente escolar, e a "
+     "supervisão humana sofre com pontos cegos, grupos grandes e fadiga.",
+     "≈ 60% dos atendimentos"),
+    ("visibility", "#1f3a5f", "A abordagem", "Postura + velocidade",
+     "O YOLOv11 detecta cada pessoa; a razão de aspecto da caixa indica a postura e a velocidade do "
+     "centroide confirma se a chegada ao chão foi brusca.",
+     "AR &lt; 0,75 e v ≥ 15 px/f"),
+    ("monitoring", "#4f6d5a", "Os resultados", "Menos alarmes falsos",
+     "O limitador cinemático derrubou os falsos positivos e o YOLOv11s mostrou o melhor equilíbrio entre "
+     "acurácia e estabilidade da caixa.",
+     "FP: 22 → 6"),
+    ("view_in_ar", "#9a7b2f", "As limitações", "O eixo Z",
+     "Quedas na direção da câmera geram pouco deslocamento em pixels. Normalização de escala e estimativa "
+     "de pose são os próximos passos.",
+     "Trabalhos futuros"),
+]
 
 ETAPAS_TUTORIAL = [
-    ("Etapa 1", "Detecção da pessoa",
-     "O YOLOv11 localiza cada pessoa no quadro e desenha a caixa delimitadora (bounding box)."),
-    ("Etapa 2", "Postura pela geometria",
-     "A razão de aspecto AR = h/w da caixa indica a postura: em pé, sentado ou deitado (AR &lt; 0,75)."),
-    ("Etapa 3", "Velocidade do centroide",
-     "O rastreador acompanha o centro da caixa entre quadros e mede o deslocamento em pixels por quadro."),
-    ("Etapa 4", "Confirmação da queda",
-     "O alerta só dispara quando a postura é deitada e a velocidade passa de 15 px/f, o que filtra quem apenas se deita."),
+    ("Detecção da pessoa",
+     "O YOLOv11 localiza cada pessoa no quadro e desenha a caixa delimitadora, com um ID que acompanha a "
+     "pessoa entre os quadros."),
+    ("Postura pela geometria",
+     "A razão de aspecto <code>AR = h/w</code> indica a postura: em pé, sentado ou deitado "
+     "(<code>AR &lt; 0,75</code>)."),
+    ("Velocidade do centroide",
+     "O deslocamento do centro da caixa entre quadros dá a velocidade em pixels por quadro, normalizada "
+     "para 30 FPS."),
+    ("Confirmação da queda",
+     "O alerta só dispara com postura deitada <b>e</b> <code>v ≥ 15 px/f</code>: quem apenas se deita "
+     "não gera alarme."),
 ]
 
 PRIMEIROS_PASSOS = [
-    "Clique em <b>Get Started</b> para abrir o sistema. A barra lateral lista os módulos disponíveis.",
-    "Em <b>Visão Geral e Artigo</b>, leia o resumo da pesquisa e a heurística bimodal de postura e velocidade.",
-    "Abra o <b>Estúdio de Inferência</b>, escolha o modelo (o YOLOv11s é o padrão recomendado) e o modo de análise.",
-    "Envie um vídeo (.mp4, .avi ou .mov) ou use uma amostra da pasta <code>videos/</code> e inicie a inferência.",
-    "Confira as ocorrências em <b>Auditoria e Logs</b> e exporte o relatório em CSV, Excel ou PDF.",
-    "Compare os resultados do artigo no <b>Dashboard Científico</b>. O ícone da casa na barra lateral volta para esta página.",
+    ("Abra o sistema", "Clique em <b>Get Started</b>. A barra lateral lista os módulos e o ícone da casa "
+                       "volta para esta página."),
+    ("Conheça a pesquisa", "Em <b>Visão Geral e Artigo</b>, veja o resumo, a heurística bimodal e as bases "
+                           "de dados."),
+    ("Configure a análise", "No <b>Estúdio de Inferência</b>, escolha o modelo (YOLOv11s é o padrão) e o "
+                            "modo de análise."),
+    ("Envie um vídeo", "Faça o upload de um .mp4, .avi ou .mov, ou use uma amostra da pasta "
+                       "<code>videos/</code>, e inicie."),
+    ("Audite as ocorrências", "Em <b>Auditoria e Logs</b>, filtre os eventos e exporte em CSV, Excel ou "
+                              "PDF."),
+    ("Compare os modelos", "No <b>Dashboard Científico</b>, confira as tabelas e matrizes de confusão do "
+                           "artigo."),
 ]
 
 
-def _cabecalho():
-    col_faixa, col_botao = st.columns([3, 1], vertical_alignment="center")
-    with col_faixa:
-        st.markdown(
-            '<div class="faixa-institucional"><span>Universidade Federal do Piauí · CEAD · '
-            'Tecnologia em Gestão de Dados</span><span>Trabalho de Conclusão de Curso</span></div>',
-            unsafe_allow_html=True,
-        )
-    with col_botao:
-        st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para,
-                  args=(PAGINA_ACADEMICA,), width="content", key="topo_academico")
+def _carregar_css():
+    if CSS_LANDING.is_file():
+        st.markdown(f"<style>{CSS_LANDING.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
+
+
+def _botoes(prefixo: str, academico: bool = True):
+    colunas = st.columns([1, 1.55] if academico else [1], gap="small")
+    with colunas[0]:
+        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=ir_para,
+                  args=(PAGINA_SISTEMA,), width="stretch", key=f"{prefixo}_iniciar")
+    if academico:
+        with colunas[1]:
+            st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para,
+                      args=(PAGINA_ACADEMICA,), width="stretch", key=f"{prefixo}_academico")
+
+
+def _barra_superior():
+    with st.container(key="lp_nav"):
+        col_marca, col_botoes = st.columns([2.1, 1.9], vertical_alignment="center")
+        with col_marca:
+            st.markdown("""
+            <div class="lp-marca">
+                <div class="selo">DQ</div>
+                <div>
+                    <div class="nome">Sistema de Análise e Detecção de Quedas</div>
+                    <div class="sub">UFPI · CEAD · Tecnologia em Gestão de Dados</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_botoes:
+            _botoes("nav")
 
 
 def _hero():
-    st.markdown("""
-    <div class="hero">
-        <div class="rotulo">Prova de conceito em visão computacional</div>
-        <div class="nome">Sistema de Análise e Detecção de Quedas</div>
-        <div class="frase">Cada segundo conta quando uma criança cai. Detectar a queda no instante em que ela
-        acontece e ignorar tudo o que não é queda.</div>
-        <div class="descricao">Monitoramento de vídeo para ambientes escolares que combina o detector YOLOv11
-        com uma heurística de postura e velocidade, reduzindo os alarmes falsos que tornam inviável a
-        supervisão automatizada.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-    col_a, col_b, _ = st.columns([1, 1.25, 2.75])
-    with col_a:
-        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=ir_para,
-                  args=(PAGINA_SISTEMA,), width="stretch", key="get_started")
-    with col_b:
-        st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para,
-                  args=(PAGINA_ACADEMICA,), width="content", key="hero_academico")
-
-
-def _numeros():
-    st.markdown("""
-    <div class="numeros">
-        <div><div class="valor">79</div><div class="legenda">eventos avaliados (event-level)</div></div>
-        <div><div class="valor">YOLOv11s</div><div class="legenda">melhor equilíbrio entre acurácia e estabilidade</div></div>
-        <div><div class="valor">22 → 6</div><div class="legenda">falsos positivos sem e com o limitador de velocidade</div></div>
-        <div><div class="valor">100%</div><div class="legenda">de precisão no UR Fall Detection Dataset</div></div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def _secao(numero: str, titulo: str):
-    st.markdown(f'<div class="secao-titulo"><span class="numero">{numero}</span>{titulo}</div>',
-                unsafe_allow_html=True)
-
-
-def _video():
-    _secao("01", "Demonstração em vídeo")
-    col_video, col_texto = st.columns([3, 2], gap="large")
-    with col_video:
-        if VIDEO_APRESENTACAO.is_file():
-            st.video(str(VIDEO_APRESENTACAO))
-            legenda = "Vídeo de apresentação do sistema."
-        else:
-            st.image(str(ANIMACAO_DEMO), width="stretch")
-            legenda = ("Figura animada: na cena 1 a queda brusca dispara o alerta; na cena 2 a pessoa se deita "
-                       "devagar e nenhum alerta é emitido.")
-        st.markdown(f'<div class="legenda-figura">{legenda}</div>', unsafe_allow_html=True)
+    col_texto, col_video = st.columns([1, 1.08], gap="large", vertical_alignment="center")
     with col_texto:
         st.markdown("""
-        **O que o vídeo mostra**
-
-        A mesma postura deitada aparece nas duas cenas. A diferença está na velocidade com que o corpo chega ao chão:
-
-        - **Queda brusca:** razão de aspecto abaixo de 0,75 e velocidade acima de 15 px/f, o que gera alerta.
-        - **Deitar-se devagar:** a postura também é deitada, mas a velocidade fica baixa e o sistema não alerta.
-
-        Esse é o mecanismo que reduziu os falsos positivos de 22 para 6 no experimento do artigo.
-        """)
-
-
-def _tutorial():
-    _secao("02", "Tutorial breve: como a detecção funciona")
-    colunas = st.columns(len(ETAPAS_TUTORIAL))
-    for coluna, (etapa, titulo, texto) in zip(colunas, ETAPAS_TUTORIAL):
-        with coluna:
-            st.markdown(f"""
-            <div class="cartao">
-                <div class="etapa">{etapa}</div>
-                <div class="titulo">{titulo}</div>
-                <div class="texto">{texto}</div>
-            </div>
+        <div class="lp-entrada lp-d1"><span class="lp-rotulo"><span class="ponto"></span>
+        Prova de conceito em visão computacional</span></div>
+        <div class="lp-titulo lp-entrada lp-d2">Detecção de quedas em <em>tempo real</em> para ambientes
+        escolares</div>
+        <div class="lp-frase lp-entrada lp-d3">Cada segundo conta quando uma criança cai. Detectar a queda no
+        instante em que ela acontece e ignorar tudo o que não é queda.</div>
+        <div class="lp-descricao lp-entrada lp-d4">O sistema combina o detector YOLOv11 com uma heurística de
+        postura e velocidade para separar a queda real de quem apenas se senta ou se deita, reduzindo os alarmes
+        falsos que inviabilizam a supervisão automatizada.</div>
+        """, unsafe_allow_html=True)
+        _botoes("hero")
+        st.markdown("""
+        <div class="lp-selos lp-entrada lp-d4"><span>YOLOv11</span><span>Event-level evaluation</span>
+        <span>TCC · UFPI</span></div>
+        """, unsafe_allow_html=True)
+    with col_video:
+        with st.container(key="lp_monitor"):
+            st.markdown("""
+            <div class="lp-monitor-topo"><span class="lp-ao-vivo">Demonstração</span>
+            <span>CAM 01 · Sala 03</span></div>
+            """, unsafe_allow_html=True)
+            if VIDEO_APRESENTACAO.is_file():
+                st.video(str(VIDEO_APRESENTACAO), autoplay=True, loop=True, muted=True)
+            st.markdown("""
+            <div class="lp-monitor-base"><span>Cena 1: queda brusca → alerta</span>
+            <span>Cena 2: deitar devagar → sem alerta</span></div>
             """, unsafe_allow_html=True)
 
 
+def _faixa():
+    itens = "".join(f"<span>{item}</span>" for item in FAIXA_RESULTADOS * 2)
+    st.markdown(f'<div class="lp-faixa"><div class="lp-faixa-trilho">{itens}</div></div>',
+                unsafe_allow_html=True)
+
+
+def _numeros():
+    blocos = "".join(
+        f'<div><div class="lp-num" style="--alvo: {alvo}" data-antes="{antes}" data-depois="{depois}"></div>'
+        f'<div class="lp-num-legenda">{legenda}</div></div>'
+        for alvo, antes, depois, legenda in NUMEROS
+    )
+    st.markdown(f'<div class="lp-numeros lp-entrada lp-d3">{blocos}</div>', unsafe_allow_html=True)
+
+
+def _cabecalho_secao(numero: str, titulo: str, texto: str):
+    st.markdown(f"""
+    <div class="lp-secao lp-revelar">
+        <div><div class="num">{numero}</div><h2>{titulo}</h2></div>
+        <p>{texto}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def _cards():
+    _cabecalho_secao("01 · Visão geral", "A pesquisa em quatro pontos",
+                     "Do problema que motivou o trabalho às limitações que orientam os próximos passos.")
+    cards = "".join(f"""
+        <div class="lp-card lp-revelar" style="--cor: {cor}">
+            <div class="lp-icone">{icone}</div>
+            <div class="rotulo">{rotulo}</div>
+            <h3>{titulo}</h3>
+            <p>{texto}</p>
+            <div class="dado">{dado}</div>
+        </div>""" for icone, cor, rotulo, titulo, texto, dado in CARDS)
+    st.markdown(f'<div class="lp-cards">{cards}</div>', unsafe_allow_html=True)
+
+
+def _tutorial():
+    _cabecalho_secao("02 · Tutorial breve", "Como a detecção funciona",
+                     "Quatro etapas executadas a cada quadro do vídeo. A etapa em destaque avança sozinha.")
+    etapas = "".join(f"""
+        <div class="lp-etapa">
+            <div class="lp-no">{i}</div>
+            <div class="lp-etapa-corpo"><h4>{titulo}</h4><p>{texto}</p></div>
+        </div>""" for i, (titulo, texto) in enumerate(ETAPAS_TUTORIAL, start=1))
+    st.markdown(f'<div class="lp-tutorial lp-revelar"><div class="lp-trilho"></div>'
+                f'<div class="lp-etapas">{etapas}</div></div>', unsafe_allow_html=True)
+
+
 def _primeiros_passos():
-    _secao("03", "Primeiros passos")
-    itens = "".join(f"<li>{passo}</li>" for passo in PRIMEIROS_PASSOS)
-    st.markdown(f'<ol class="passos">{itens}</ol>', unsafe_allow_html=True)
-    st.write("")
-    col_a, _ = st.columns([1, 4])
-    with col_a:
-        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=ir_para,
-                  args=(PAGINA_SISTEMA,), width="stretch", key="get_started_rodape")
+    _cabecalho_secao("03 · Primeiros passos", "Do primeiro clique ao relatório",
+                     "Um roteiro curto para explorar o sistema pela primeira vez.")
+    passos = "".join(f"""
+        <div class="lp-passo lp-revelar">
+            <div class="n">{i:02d}</div>
+            <div><h4>{titulo}</h4><p>{texto}</p></div>
+        </div>""" for i, (titulo, texto) in enumerate(PRIMEIROS_PASSOS, start=1))
+    st.markdown(f'<div class="lp-passos">{passos}</div>', unsafe_allow_html=True)
+
+
+def _chamada_final():
+    with st.container(key="lp_cta"):
+        col_texto, col_botoes = st.columns([1.45, 1.25], vertical_alignment="center")
+        with col_texto:
+            st.markdown("""
+            <div class="lp-cta-titulo">Pronto para analisar um vídeo?</div>
+            <div class="lp-cta-texto">Abra o Estúdio de Inferência, escolha o modelo e veja a heurística
+            funcionando quadro a quadro.</div>
+            """, unsafe_allow_html=True)
+        with col_botoes:
+            _botoes("cta")
 
 
 def render_pagina_inicial():
-    _cabecalho()
+    _carregar_css()
+    _barra_superior()
     _hero()
-    st.write("")
+    _faixa()
     _numeros()
-    st.divider()
-    _video()
-    st.divider()
+    _cards()
     _tutorial()
-    st.divider()
     _primeiros_passos()
+    _chamada_final()
     st.markdown("""
-    <div class="rodape">
-        <span>Sistema de Análise e Detecção de Quedas · TCC · CSTGD · CEAD · UFPI</span>
-        <span>Autor: Brendo A. Soares · Orientadores: Wener B. de Sampaio e Martony D. da Silva</span>
+    <div class="lp-rodape">
+        <span>Sistema de Análise e Detecção de Quedas · Trabalho de Conclusão de Curso · CSTGD · CEAD · UFPI</span>
+        <span>Informações sobre autoria e orientação na seção Informações Acadêmicas</span>
     </div>
     """, unsafe_allow_html=True)

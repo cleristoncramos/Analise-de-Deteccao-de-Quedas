@@ -49,16 +49,6 @@ def render_sistema():
 
         menu = st.radio("Módulos do sistema", list(MODULOS), index=0)
 
-        st.divider()
-        st.markdown("""
-        <div class="sidebar-rodape">
-            <b>Pesquisa:</b> PoC de prevenção de acidentes em ambientes escolares<br>
-            <b>Autor:</b> Brendo A. Soares<br>
-            <b>Orientadores:</b> Wener B. de Sampaio e Martony D. da Silva<br>
-            <b>Instituição:</b> Universidade Federal do Piauí
-        </div>
-        """, unsafe_allow_html=True)
-
     MODULOS[menu]()
 
 

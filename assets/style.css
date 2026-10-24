@@ -171,14 +171,6 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
     margin-top: 0.25rem;
 }
 
-.sidebar-rodape {
-    font-size: 0.75rem;
-    color: var(--tinta-suave);
-    line-height: 1.5;
-    border-top: 1px solid var(--borda-discreta);
-    padding-top: 0.6rem;
-}
-
 /* Badges */
 .status-badge {
     display: inline-block;
@@ -193,164 +185,7 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
 .badge-safe { color: var(--verde); background: rgba(79, 109, 90, 0.08); }
 .badge-warning { color: var(--ocre); background: rgba(154, 123, 47, 0.08); }
 
-/* ---------- Página inicial e informações acadêmicas ---------- */
-
-.faixa-institucional {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--borda);
-    padding-bottom: 0.5rem;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--tinta-suave);
-}
-
-.hero {
-    border-bottom: 1px solid var(--borda);
-    padding: 2.5rem 0 2rem 0;
-}
-
-.hero .rotulo {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--vinho);
-    font-weight: 600;
-}
-
-.hero .nome {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--tinta);
-    margin: 0.5rem 0 0.9rem 0;
-}
-
-.hero .frase {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-style: italic;
-    font-size: 1.3rem;
-    color: var(--marinho);
-    max-width: 46rem;
-    line-height: 1.45;
-}
-
-.hero .descricao {
-    margin-top: 0.9rem;
-    color: var(--tinta-suave);
-    max-width: 46rem;
-    line-height: 1.6;
-}
-
-.secao-titulo {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.45rem;
-    font-weight: 600;
-    color: var(--tinta);
-    border-bottom: 1px solid var(--borda);
-    padding-bottom: 0.3rem;
-    margin: 0.5rem 0 1rem 0;
-}
-
-.secao-titulo .numero {
-    color: var(--vinho);
-    margin-right: 0.5rem;
-}
-
-.cartao {
-    border: 1px solid var(--borda);
-    background: #fbfaf7;
-    padding: 1rem 1.1rem;
-    min-height: 11.5rem;
-}
-
-.cartao .etapa {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--vinho);
-    font-weight: 600;
-}
-
-.cartao .titulo {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0.3rem 0 0.4rem 0;
-    color: var(--tinta);
-}
-
-.cartao .texto {
-    font-size: 0.9rem;
-    color: var(--tinta-suave);
-    line-height: 1.55;
-}
-
-.numeros {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border: 1px solid var(--borda);
-    background: #fbfaf7;
-}
-
-.numeros > div {
-    padding: 0.9rem 1rem;
-    border-right: 1px solid var(--borda-discreta);
-}
-
-.numeros > div:last-child { border-right: none; }
-
-.numeros .valor {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--marinho);
-}
-
-.numeros .legenda {
-    font-size: 0.78rem;
-    color: var(--tinta-suave);
-}
-
-.passos {
-    counter-reset: passo;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid var(--borda);
-    background: #fbfaf7;
-}
-
-.passos li {
-    counter-increment: passo;
-    padding: 0.7rem 1rem 0.7rem 3.2rem;
-    border-bottom: 1px solid var(--borda-discreta);
-    position: relative;
-    line-height: 1.5;
-}
-
-.passos li:last-child { border-bottom: none; }
-
-.passos li::before {
-    content: counter(passo, decimal-leading-zero);
-    position: absolute;
-    left: 1rem;
-    top: 0.7rem;
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-weight: 700;
-    color: var(--vinho);
-}
-
-.legenda-figura {
-    font-size: 0.8rem;
-    color: var(--tinta-suave);
-    border-top: 1px solid var(--borda-discreta);
-    padding-top: 0.4rem;
-    margin-top: 0.4rem;
-}
+/* ---------- Informações acadêmicas ---------- */
 
 .cabecalho-academico {
     display: flex;
@@ -419,7 +254,5 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
 }
 
 @media (max-width: 760px) {
-    .numeros { grid-template-columns: repeat(2, 1fr); }
-    .hero .nome { font-size: 2rem; }
     .cabecalho-academico { flex-direction: column; }
 }
