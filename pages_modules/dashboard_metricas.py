@@ -21,9 +21,6 @@ def render_dashboard_metricas():
 
     dados = carregar_dados_benchmark()
 
-    for aviso in dados["metadados"].get("pendencias", []):
-        st.warning(f"**Pendência nos dados do artigo:** {aviso}")
-
     # Destaque das Métricas Globais do Melhor Modelo (maior F1 no cenário Com Velocidade)
     df_tabela4 = pd.DataFrame(dados["tabela_4_geral"])
     df_com = df_tabela4[df_tabela4["cenario"] == "Com Velocidade"]

@@ -81,6 +81,13 @@ A interface disponibiliza:
 4. **Auditoria & Logs**: Registro detalhado das ocorrências com exportação para CSV, Excel e PDF técnico.
 5. **Laboratório Experimental**: Simulação da velocidade normalizada para mitigação do Eixo Z e conceitos de Pose Estimation.
 
+## Observações sobre os dados
+
+Dois pontos das tabelas do artigo (`data/tcc_benchmark_data.json`) ainda precisam ser conferidos na contagem original. Eles ficam registrados no campo `metadados.pendencias` e não são exibidos na interface:
+
+- **YOLOv11x (Com Velocidade):** soma 80 eventos. Na Tabela 1 tem 17 eventos simulados (10 negativos), enquanto os demais modelos têm 16 (9 negativos).
+- **Sem Velocidade (YOLOv11m\*):** soma 91 eventos (53 negativos, contra 41 nos demais). Os falsos alarmes parecem ter sido contados como eventos novos; para comparar a acurácia entre cenários, os dois devem usar o mesmo conjunto de eventos reais.
+
 ## Testes
 
 ```bash
