@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,500&display=swap');
+
 /* Página inicial: estilo de landing page, mantendo a identidade acadêmica
    (cantos retos, bordas finas, papel, azul-marinho, vinho e ocre). */
 
@@ -134,14 +136,24 @@
     animation: lp-pulso 1.6s ease-in-out infinite;
 }
 
+.lp-instituicao {
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--tinta-suave);
+    margin-bottom: 0.8rem;
+}
+
 .lp-titulo {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.015em;
+    font-family: 'Playfair Display', 'Source Serif 4', Georgia, serif;
+    font-size: clamp(2.2rem, 3.4vw, 3.05rem);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.01em;
     color: var(--tinta);
-    margin: 1rem 0 1rem 0;
+    margin: 1.2rem 0 1.4rem 0;
+    text-wrap: balance;
 }
 
 .lp-titulo em {
@@ -155,21 +167,24 @@
 }
 
 .lp-frase {
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: 'Playfair Display', 'Source Serif 4', Georgia, serif;
     font-style: italic;
-    font-size: 1.28rem;
-    line-height: 1.45;
+    font-weight: 500;
+    font-size: 1.32rem;
+    line-height: 1.5;
     color: var(--marinho);
     border-left: 3px solid var(--vinho);
-    padding-left: 0.9rem;
-    margin-bottom: 1rem;
+    padding: 0.15rem 0 0.15rem 1rem;
+    margin-bottom: 1.3rem;
+    max-width: 34rem;
 }
 
 .lp-descricao {
     color: var(--tinta-suave);
-    line-height: 1.65;
-    font-size: 1rem;
-    margin-bottom: 1.1rem;
+    line-height: 1.7;
+    font-size: 1.02rem;
+    max-width: 62ch;
+    margin-bottom: 1.6rem;
 }
 
 .lp-selos {
@@ -264,30 +279,65 @@
 
 .lp-faixa-trilho b { color: #e3c77f; font-weight: 600; }
 
-/* ---------- Números ---------- */
+/* ---------- Números (indicadores) ---------- */
 
 .lp-numeros {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 1.1rem;
+    margin-top: 1.4rem;
+}
+
+.lp-indicador {
+    position: relative;
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--borda);
-    background: #fbfaf7;
+    border-top: 3px solid var(--cor, var(--marinho));
+    background: #fdfcf9;
+    padding: 1.1rem 1.25rem 1.25rem 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(31, 58, 95, 0.10);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.lp-numeros > div {
-    padding: 1.2rem 1.3rem;
-    border-right: 1px solid var(--borda-discreta);
-    transition: background 0.25s ease;
+.lp-indicador:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 16px 36px rgba(31, 58, 95, 0.18);
 }
 
-.lp-numeros > div:last-child { border-right: none; }
-.lp-numeros > div:hover { background: var(--papel-escuro); }
+.lp-indicador-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.7rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--borda-discreta);
+}
+
+.lp-indicador-rotulo {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cor, var(--marinho));
+}
+
+.lp-indicador-icone {
+    font-family: 'Material Symbols Rounded';
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--cor, var(--marinho));
+    font-feature-settings: 'liga';
+}
 
 .lp-num {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 2.5rem;
+    font-family: 'Playfair Display', 'Source Serif 4', Georgia, serif;
+    font-size: 2.9rem;
     font-weight: 700;
     line-height: 1;
-    color: var(--marinho);
+    color: var(--tinta);
+    font-variant-numeric: lining-nums tabular-nums;
     counter-reset: lp var(--lp-n);
     animation: lp-conta 2.2s 0.4s cubic-bezier(.2, .7, .2, 1) forwards;
 }
@@ -296,10 +346,10 @@
 .lp-num::after { content: counter(lp) attr(data-depois); }
 
 .lp-num-legenda {
-    margin-top: 0.45rem;
-    font-size: 0.82rem;
+    margin-top: 0.6rem;
+    font-size: 0.86rem;
     color: var(--tinta-suave);
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 /* ---------- Cabeçalhos de seção ---------- */
@@ -602,8 +652,6 @@
     .lp-cards { grid-template-columns: repeat(2, 1fr); }
     .lp-passos { grid-template-columns: repeat(2, 1fr); }
     .lp-numeros { grid-template-columns: repeat(2, 1fr); }
-    .lp-numeros > div:nth-child(2) { border-right: none; }
-    .lp-numeros > div:nth-child(-n+2) { border-bottom: 1px solid var(--borda-discreta); }
     .lp-secao { flex-direction: column; align-items: flex-start; }
     .lp-secao p { text-align: left; }
 }
@@ -614,7 +662,8 @@
     .lp-etapas { grid-template-columns: 1fr; margin-top: 0; }
     .lp-etapa { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; text-align: left; }
     .lp-etapa-corpo { margin-top: 0; min-height: 0; }
-    .lp-num { font-size: 2rem; }
+    .lp-numeros { grid-template-columns: 1fr; }
+    .lp-num { font-size: 2.4rem; }
     .st-key-lp_monitor { box-shadow: 6px 6px 0 var(--tinta); }
     .lp-monitor-base { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
 }
@@ -627,6 +676,7 @@
         animation: none !important;
     }
     .lp-num { animation: none; --lp-n: var(--alvo); }
+    .lp-indicador, .lp-card { transition: none; }
     .lp-titulo em { background-size: 100% 3px; }
     .lp-faixa-trilho { flex-wrap: wrap; width: auto; }
     .lp-trilho::after { width: 100%; }

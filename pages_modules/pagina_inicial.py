@@ -19,11 +19,15 @@ FAIXA_RESULTADOS = [
 ]
 
 NUMEROS = [
-    # (alvo, antes, depois, legenda)
-    (79, "", "", "eventos contínuos avaliados (event-level)"),
-    (656, "0,", "", "de F1-score no YOLOv11s, o melhor equilíbrio"),
-    (6, "", "", "falsos positivos com velocidade, contra 22 sem ela"),
-    (100, "", "%", "de precisão no UR Fall Detection Dataset"),
+    # (alvo, antes, depois, ícone, cor, rótulo, legenda)
+    (79, "", "", "event_note", "#1f3a5f", "Eventos avaliados",
+     "Eventos contínuos analisados sob o paradigma event-level."),
+    (656, "0,", "", "insights", "#7b2d26", "F1-score · YOLOv11s",
+     "Melhor equilíbrio entre acurácia e estabilidade da caixa."),
+    (6, "", "", "notifications_off", "#9a7b2f", "Falsos positivos",
+     "Com o limitador de velocidade, contra 22 sem ele."),
+    (100, "", "%", "verified", "#4f6d5a", "Precisão · UR Fall",
+     "Nenhum alarme falso no benchmark UR Fall Detection."),
 ]
 
 CARDS = [
@@ -101,7 +105,7 @@ def _barra_superior():
                 <div class="selo">DQ</div>
                 <div>
                     <div class="nome">Sistema de Análise e Detecção de Quedas</div>
-                    <div class="sub">UFPI · CEAD · Tecnologia em Gestão de Dados</div>
+                    <div class="sub">Visão computacional aplicada à segurança escolar</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -113,8 +117,9 @@ def _hero():
     col_texto, col_video = st.columns([1, 1.08], gap="large", vertical_alignment="center")
     with col_texto:
         st.markdown("""
+        <div class="lp-instituicao lp-entrada lp-d1">Universidade Federal do Piauí · CEAD · CSTGD</div>
         <div class="lp-entrada lp-d1"><span class="lp-rotulo"><span class="ponto"></span>
-        Prova de conceito em visão computacional</span></div>
+        TCC · Prova de conceito</span></div>
         <div class="lp-titulo lp-entrada lp-d2">Detecção de quedas em <em>tempo real</em> para ambientes
         escolares</div>
         <div class="lp-frase lp-entrada lp-d3">Cada segundo conta quando uma criança cai. Detectar a queda no
@@ -149,11 +154,13 @@ def _faixa():
 
 
 def _numeros():
-    blocos = "".join(
-        f'<div><div class="lp-num" style="--alvo: {alvo}" data-antes="{antes}" data-depois="{depois}"></div>'
-        f'<div class="lp-num-legenda">{legenda}</div></div>'
-        for alvo, antes, depois, legenda in NUMEROS
-    )
+    blocos = "".join(f"""
+        <div class="lp-indicador" style="--cor: {cor}">
+            <div class="lp-indicador-topo"><span class="lp-indicador-rotulo">{rotulo}</span>
+            <span class="lp-indicador-icone">{icone}</span></div>
+            <div class="lp-num" style="--alvo: {alvo}" data-antes="{antes}" data-depois="{depois}"></div>
+            <div class="lp-num-legenda">{legenda}</div>
+        </div>""" for alvo, antes, depois, icone, cor, rotulo, legenda in NUMEROS)
     st.markdown(f'<div class="lp-numeros lp-entrada lp-d3">{blocos}</div>', unsafe_allow_html=True)
 
 
