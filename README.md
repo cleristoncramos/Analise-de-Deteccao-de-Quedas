@@ -89,9 +89,9 @@ $$AR = \frac{h}{w}$$
 
 | Postura inferida | Intervalo |
 |---|---|
-| Deitado | $AR < 0{,}75$ |
-| Sentado/Agachado | $0{,}75 \le AR \le 1{,}20$ |
-| Em pé | $AR > 1{,}20$ |
+| Deitado | AR < 0,75 |
+| Sentado/Agachado | 0,75 ≤ AR ≤ 1,20 |
+| Em pé | AR > 1,20 |
 
 A geometria isolada não distingue uma queda de alguém que se deita de propósito, o que motiva o segundo ramo da heurística.
 
@@ -105,9 +105,9 @@ em que $t - t'$ é o número de quadros entre as duas observações. Dividir pel
 
 | Classe de movimento | Intervalo |
 |---|---|
-| Mexendo-se pouco | $v < 1{,}0$ px/f |
-| Andando | $1{,}0 \le v < 30{,}0$ px/f |
-| Correndo | $v \ge 30{,}0$ px/f |
+| Mexendo-se pouco | v < 1,0 px/f |
+| Andando | 1,0 ≤ v < 30,0 px/f |
+| Correndo | v ≥ 30,0 px/f |
 
 ## 4. Metodologia
 
@@ -134,7 +134,7 @@ Todo quadro é redimensionado para **1080 px de largura** antes da inferência (
 
 ### 4.2 Heurística de confirmação de queda
 
-$$\text{Queda} \iff (AR < 0{,}75) \land (v \ge 15{,}0\ \text{px/f})$$
+$$\text{Queda} \iff (AR < \text{0,75}) \land (v \ge \text{15,0 px/f})$$
 
 | Modo | Regra | Papel no estudo |
 |---|---|---|
@@ -420,7 +420,7 @@ O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) execut
 ## 12. Reprodutibilidade
 
 - **Pesos.** Foram utilizados os pesos oficiais pré-treinados do YOLOv11 (n, s, m, l e x), sem ajuste fino.
-- **Parâmetros.** Os valores padrão da interface e da linha de comando são os da metodologia: largura de 1080 px, confiança 0,5, $AR < 0{,}75$, $v \ge 15$ px/f na referência de 30 FPS, proximidade de 60 px e carência de 2 s.
+- **Parâmetros.** Os valores padrão da interface e da linha de comando são os da metodologia: largura de 1080 px, confiança 0,5, AR < 0,75, v ≥ 15 px/f na referência de 30 FPS, proximidade de 60 px e carência de 2 s.
 - **Métricas.** Os números do artigo estão em `data/tcc_benchmark_data.json`, e o teste `test_benchmark_data.py` recalcula acurácia, precisão, revocação e F1 a partir das matrizes de confusão.
 - **Vídeos.** Os vídeos de avaliação não são versionados (`*.mp4` está no `.gitignore`). Para reproduzir os experimentos, coloque-os em `videos/` e use a execução em lote da [seção 8.4](#84-linha-de-comando).
 - **Vídeo de demonstração.** A animação da página inicial é sintética, gerada por `python tools/gerar_video_demo.py`; ela ilustra a heurística e não faz parte das bases de avaliação.
