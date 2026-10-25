@@ -1,0 +1,34 @@
+name: Manter app ativo
+
+# Visita o app publicado a cada 4 horas para que o Streamlit Cloud não o coloque em hibernação.
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  visitar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: python tools/manter_app_ativo.py
+        env:
+          APP_URL: https://deteccao-quedas.streamlit.app
+
+      # O GitHub desativa workflows agendados após 60 dias sem commits no repositório.
+      # Reativar o próprio workflow a cada execução reinicia essa contagem.
+      - name: Manter o agendamento habilitado
+        if: always()
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/manter-app-ativo.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}

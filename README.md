@@ -307,6 +307,8 @@ streamlit run app.py
 
 A versão publicada está em [deteccao-quedas.streamlit.app](https://deteccao-quedas.streamlit.app).
 
+O Streamlit Community Cloud coloca o app em hibernação quando ele passa algumas horas sem visitas. Para evitar isso, o workflow [`manter-app-ativo.yml`](.github/workflows/manter-app-ativo.yml) abre a página a cada 4 horas com um navegador sem interface ([`tools/manter_app_ativo.py`](tools/manter_app_ativo.py)) e, se o app estiver dormindo, clica no botão para acordá-lo. O workflow também pode ser executado manualmente na aba **Actions** do GitHub.
+
 ### 8.4 Linha de comando
 
 ```bash
