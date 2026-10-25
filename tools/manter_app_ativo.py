@@ -25,10 +25,11 @@ ESPERA_ACORDAR_MS = 5 * 60 * 1000  # o app pode levar alguns minutos para subir 
 ESPERA_CARREGAR_MS = 90 * 1000
 
 
-def app_carregado(pagina) -> bool:
+def app_carregado(pagina, espera_ms=ESPERA_CARREGAR_MS) -> bool:
     """Espera a interface do Streamlit aparecer (o app roda num iframe dentro da página)."""
+    # a página também tem o iframe de status do Streamlit Cloud, por isso o seletor pelo título
     try:
-        pagina.frame_locator("iframe").first.locator("[data-testid='stApp']").wait_for(timeout=ESPERA_CARREGAR_MS)
+        pagina.frame_locator("iframe[title='streamlitApp']").locator("[data-testid='stApp']").wait_for(timeout=espera_ms)
         return True
     except PlaywrightTimeout:
         pass
@@ -52,15 +53,11 @@ def main() -> int:
         if botao.count() > 0:
             print("App em hibernação; clicando para acordar.")
             botao.first.click()
-            try:
-                botao.first.wait_for(state="detached", timeout=ESPERA_ACORDAR_MS)
-            except PlaywrightTimeout:
-                print("O botão de acordar não sumiu a tempo.")
-                navegador.close()
-                return 1
-            pagina.reload(wait_until="domcontentloaded")
-
-        ok = app_carregado(pagina)
+            # o botão some logo, mas o app leva alguns minutos para subir; a página troca
+            # sozinha para o iframe do app quando ele fica pronto
+            ok = app_carregado(pagina, ESPERA_ACORDAR_MS)
+        else:
+            ok = app_carregado(pagina)
         # permanece um pouco na página para a visita ser registrada
         pagina.wait_for_timeout(20_000)
         navegador.close()
