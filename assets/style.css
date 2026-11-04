@@ -171,6 +171,20 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
     margin-top: 0.25rem;
 }
 
+/* Aviso discreto (ex.: modelos pesados na barra lateral) */
+.aviso-discreto {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--tinta-suave);
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    background: rgba(154, 123, 47, 0.06);
+    border-left: 2px solid var(--ocre);
+    padding: 0.35rem 0.55rem;
+    margin: -0.35rem 0 0.75rem 0;
+}
+
 /* Badges */
 .status-badge {
     display: inline-block;

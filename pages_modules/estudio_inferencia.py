@@ -230,8 +230,11 @@ def render_estudio_inferencia():
     )
     padroes = padroes_execucao()
     if padroes.modo_leve and any(m in modelo_selecionado for m in MODELOS_PESADOS):
-        st.sidebar.warning("Modelos grandes (L e X) usam muita CPU e podem fazer a plataforma reduzir "
-                           "temporariamente o desempenho do app. Na versão publicada, prefira v11n ou v11s.")
+        st.sidebar.markdown(
+            '<div class="aviso-discreto" lang="pt-BR">Modelos grandes (L e X) usam muita CPU e podem fazer a '
+            "plataforma reduzir temporariamente o desempenho do app. Na versão publicada, prefira v11n ou v11s.</div>",
+            unsafe_allow_html=True,
+        )
 
     modo_execucao = st.sidebar.radio(
         "Modo de Análise",
