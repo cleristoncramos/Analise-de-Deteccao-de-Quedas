@@ -426,13 +426,21 @@ def render_estudio_inferencia():
             if queda_no_frame:
                 alert_placeholder.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {numero_frame}!**")
 
+    except Exception as exc:  # dependência ausente no servidor, vídeo corrompido etc.
+        status_placeholder.error(
+            f"A análise foi interrompida no frame {numero_frame} por um erro no processamento: "
+            f"**{type(exc).__name__}: {exc}**. Se o erro citar um módulo ausente, a dependência precisa estar "
+            "no `requirements.txt` do app publicado."
+        )
+        return
     finally:
         cap.release()
-        tempo_total = time.time() - inicio_tempo
-        status_placeholder.success(
-            f"Processamento concluído: {numero_frame} frames analisados em {tempo_total:.1f}s "
-            f"(FPS Médio: {numero_frame / max(0.001, tempo_total):.1f})."
-        )
+
+    tempo_total = time.time() - inicio_tempo
+    status_placeholder.success(
+        f"Processamento concluído: {numero_frame} frames analisados em {tempo_total:.1f}s "
+        f"(FPS Médio: {numero_frame / max(0.001, tempo_total):.1f})."
+    )
 
     if concluido and amostra_catalogo:
         resultados = []
