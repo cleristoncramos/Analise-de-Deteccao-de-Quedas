@@ -185,6 +185,66 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
     margin: -0.35rem 0 0.75rem 0;
 }
 
+/* Ícone de informação com dica (tooltip) em CSS puro: hover, foco pelo teclado e toque */
+.info-tooltip-linha {
+    display: flex;
+    justify-content: flex-end;
+    margin: -0.25rem 0 -0.5rem 0;
+}
+
+.info-tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--tinta-suave);
+    cursor: help;
+    outline: none;
+    user-select: none;
+}
+
+.info-tooltip-icone {
+    font-family: 'Material Symbols Rounded';
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--marinho);
+    font-feature-settings: 'liga';
+}
+
+.info-tooltip:focus-visible { box-shadow: 0 0 0 2px var(--marinho); }
+
+.info-tooltip-texto {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    width: max-content;
+    max-width: min(320px, 80vw);
+    padding: 0.6rem 0.75rem;
+    background: #fbfaf7;
+    border: 1px solid var(--borda);
+    box-shadow: 0 6px 18px rgba(29, 29, 27, 0.16);
+    color: var(--tinta);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: center;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+}
+
+.info-tooltip:hover .info-tooltip-texto,
+.info-tooltip:focus .info-tooltip-texto,
+.info-tooltip:focus-within .info-tooltip-texto {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
 /* Badges */
 .status-badge {
     display: inline-block;

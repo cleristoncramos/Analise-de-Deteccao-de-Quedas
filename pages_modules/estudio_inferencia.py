@@ -316,11 +316,18 @@ def render_estudio_inferencia():
         origem_rotulo = "Webcam do servidor"
 
     if padroes.modo_leve:
-        st.info("**Versão publicada (Streamlit Cloud gratuito).** Para não sobrecarregar o servidor, a análise usa "
-                f"um modo leve, com até {padroes.max_quadros} quadros por vídeo e imagens menores na tela. Se a "
-                "análise ficar lenta ou aparecer o aviso em inglês *Your app has been throttled*, é a plataforma "
-                "reduzindo a CPU do app por alguns minutos por causa do uso intenso; o app continua funcionando e o "
-                "aviso some sozinho. Modelos menores (v11n, v11s) evitam o problema.")
+        texto = ("<b>Versão publicada (Streamlit Cloud gratuito).</b> Para não sobrecarregar o servidor, a análise usa "
+                 f"um modo leve, com até {padroes.max_quadros} quadros por vídeo e imagens menores na tela. Se a "
+                 "análise ficar lenta ou aparecer o aviso em inglês <i>Your app has been throttled</i>, é a plataforma "
+                 "reduzindo a CPU do app por alguns minutos por causa do uso intenso; o app continua funcionando e o "
+                 "aviso some sozinho. Modelos menores (v11n, v11s) evitam o problema.")
+        st.markdown(
+            '<div class="info-tooltip-linha"><span class="info-tooltip" tabindex="0" role="button" '
+            'aria-label="Sobre o modo leve da versão publicada" aria-describedby="dica-modo-leve">'
+            '<span class="info-tooltip-icone" aria-hidden="true">info</span>Modo leve'
+            f'<span class="info-tooltip-texto" role="tooltip" id="dica-modo-leve">{texto}</span></span></div>',
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
