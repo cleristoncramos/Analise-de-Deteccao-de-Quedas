@@ -14,8 +14,10 @@ from core.catalogo_videos import (
     obter_video,
     recortar_quadro,
 )
+from core.ambiente import MODELOS_PESADOS, padroes_execucao
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
+from core.horario import hora_local
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import MODELOS_TCC, carregar_modelo, processar_frame_detector, reiniciar_rastreamento
@@ -77,7 +79,7 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
             quedas += 1
         st.session_state.historico_eventos.append({
             "Frame": numero_frame,
-            "Timestamp": time.strftime("%H:%M:%S"),
+            "Timestamp": hora_local(),
             "Tipo": ev["tipo"],
             "Postura": ev["postura"],
             "Velocidade": ev["velocidade"],
@@ -226,6 +228,10 @@ def render_estudio_inferencia():
         index=1,  # Default YOLOv11s (o sweet spot apontado no artigo)
         help="Selecione a variante da arquitetura YOLOv11."
     )
+    padroes = padroes_execucao()
+    if padroes.modo_leve and any(m in modelo_selecionado for m in MODELOS_PESADOS):
+        st.sidebar.warning("Modelos grandes (L e X) usam muita CPU e podem fazer a plataforma reduzir "
+                           "temporariamente o desempenho do app. Na versão publicada, prefira v11n ou v11s.")
 
     modo_execucao = st.sidebar.radio(
         "Modo de Análise",
@@ -257,6 +263,14 @@ def render_estudio_inferencia():
             "Agrupar ocorrências em eventos (s)", 0.0, 5.0, 2.0, 0.5,
             help="A mesma pessoa (ou dupla) só gera um novo registro após este tempo sem ocorrência. 0 registra todo frame."
         )
+        pular_quadros = st.slider(
+            "Analisar 1 a cada N quadros", 1, 5, padroes.pular_quadros,
+            help="1 analisa todos os quadros (metodologia do TCC). Valores maiores reduzem o uso de CPU, mas "
+                 "a velocidade passa a ser a média entre os quadros analisados e o pico da queda fica diluído: "
+                 "quedas rápidas podem deixar de ser detectadas."
+        )
+        if pular_quadros > 1:
+            st.warning("Pulando quadros, o resultado pode diferir da metodologia do TCC.")
 
     # Seleção da fonte de vídeo
     tipo_fonte = st.radio(
@@ -298,6 +312,13 @@ def render_estudio_inferencia():
         caminho_video = 0
         origem_rotulo = "Webcam do servidor"
 
+    if padroes.modo_leve:
+        st.info("**Versão publicada (Streamlit Cloud gratuito).** Para não sobrecarregar o servidor, a análise usa "
+                f"um modo leve, com até {padroes.max_quadros} quadros por vídeo e imagens menores na tela. Se a "
+                "análise ficar lenta ou aparecer o aviso em inglês *Your app has been throttled*, é a plataforma "
+                "reduzindo a CPU do app por alguns minutos por causa do uso intenso; o app continua funcionando e o "
+                "aviso some sozinho. Modelos menores (v11n, v11s) evitam o problema.")
+
     st.divider()
 
     # Controles de Execução
@@ -336,7 +357,7 @@ def render_estudio_inferencia():
         return
 
     fps_video = cap.get(cv2.CAP_PROP_FPS)
-    tracker = PersonTracker(fps_video=fps_video if corrigir_fps else None)
+    tracker = PersonTracker(fps_video=fps_video if corrigir_fps else None, passo_quadros=pular_quadros)
 
     executar_com = modo_execucao in (MODO_COM, MODO_AB)
     executar_sem = modo_execucao in (MODO_SEM, MODO_AB)
@@ -366,9 +387,29 @@ def render_estudio_inferencia():
     inicio_tempo = time.time()
     recorte = amostra_catalogo.get("recorte") if amostra_catalogo else None
     concluido = False
+    limite_atingido = False
+    quadros_analisados = 0
+
+    def exibir(imagem):
+        """Reduz a imagem enviada ao navegador; a análise continua na resolução escolhida."""
+        altura, largura = imagem.shape[:2]
+        if largura > padroes.largura_exibicao:
+            imagem = cv2.resize(imagem, (padroes.largura_exibicao, round(altura * padroes.largura_exibicao / largura)))
+        return cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
 
     try:
         while cap.isOpened():
+            if padroes.max_quadros and numero_frame >= padroes.max_quadros:
+                limite_atingido = True
+                break
+            # Quadros pulados só avançam o vídeo (grab), sem decodificar nem rodar o YOLO
+            if pular_quadros > 1 and numero_frame % pular_quadros:
+                if not cap.grab():
+                    concluido = True
+                    break
+                numero_frame += 1
+                continue
+
             t_frame_start = time.time()
             ret, frame = cap.read()
             if not ret:
@@ -376,6 +417,7 @@ def render_estudio_inferencia():
                 break
 
             numero_frame += 1
+            quadros_analisados += 1
             frame = redimensionar_frame(recortar_quadro(frame, recorte), largura_alvo=resolucao_alvo)
 
             # Uma única inferência por frame alimenta os dois ramos heurísticos
@@ -403,15 +445,15 @@ def render_estudio_inferencia():
 
             # Renderização
             if modo_execucao == MODO_AB:
-                view_left.image(cv2.cvtColor(frame_sem, cv2.COLOR_BGR2RGB),
+                view_left.image(exibir(frame_sem),
                                 caption="Modelo Sem Velocidade (Muitos Falsos Positivos)", width="stretch")
-                view_right.image(cv2.cvtColor(frame_com, cv2.COLOR_BGR2RGB),
+                view_right.image(exibir(frame_com),
                                  caption="Modelo Com Velocidade (Filtro Cinemático Ativo)", width="stretch")
             elif modo_execucao == MODO_SEM:
-                view_main.image(cv2.cvtColor(frame_sem, cv2.COLOR_BGR2RGB),
+                view_main.image(exibir(frame_sem),
                                 caption=f"Modo Estático: Frame {numero_frame}", width="stretch")
             else:
-                view_main.image(cv2.cvtColor(frame_com, cv2.COLOR_BGR2RGB),
+                view_main.image(exibir(frame_com),
                                 caption=f"Modo Bimodal: Frame {numero_frame}", width="stretch")
 
             # Telemetria (FPS de ponta a ponta: leitura, inferência, heurísticas e exibição)
@@ -426,6 +468,9 @@ def render_estudio_inferencia():
             if queda_no_frame:
                 alert_placeholder.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {numero_frame}!**")
 
+            if padroes.pausa_s:
+                time.sleep(padroes.pausa_s)  # pausa cooperativa: deixa a CPU respirar entre quadros
+
     except Exception as exc:  # dependência ausente no servidor, vídeo corrompido etc.
         status_placeholder.error(
             f"A análise foi interrompida no frame {numero_frame} por um erro no processamento: "
@@ -437,10 +482,14 @@ def render_estudio_inferencia():
         cap.release()
 
     tempo_total = time.time() - inicio_tempo
+    detalhe = "" if pular_quadros == 1 else f", {quadros_analisados} analisados (1 a cada {pular_quadros})"
     status_placeholder.success(
-        f"Processamento concluído: {numero_frame} frames analisados em {tempo_total:.1f}s "
-        f"(FPS Médio: {numero_frame / max(0.001, tempo_total):.1f})."
+        f"Processamento concluído: {numero_frame} frames do vídeo{detalhe} em {tempo_total:.1f}s "
+        f"(FPS Médio: {quadros_analisados / max(0.001, tempo_total):.1f})."
     )
+    if limite_atingido:
+        st.warning(f"A análise parou no limite de {padroes.max_quadros} quadros do modo leve da versão publicada. "
+                   "Para vídeos longos, rode o sistema localmente (veja o README).")
 
     if concluido and amostra_catalogo:
         resultados = []

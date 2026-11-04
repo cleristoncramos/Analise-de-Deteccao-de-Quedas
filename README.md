@@ -256,7 +256,9 @@ O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do U
 │   ├── video_processor.py      # Redimensionamento, desenho das anotações e geração dos eventos por quadro
 │   ├── eventos.py              # AgrupadorEventos: agrupa ocorrências por pessoa/dupla com período de carência
 │   ├── ice_servers.py          # Configuração STUN/TURN da câmera do navegador a partir dos Secrets
-│   └── catalogo_videos.py      # Catálogo de amostras do UR Fall: download sob demanda, cache e gabarito
+│   ├── catalogo_videos.py      # Catálogo de amostras do UR Fall: download sob demanda, cache e gabarito
+│   ├── ambiente.py             # Detecção do Streamlit Cloud e padrões do modo leve
+│   └── horario.py              # Horário local no fuso America/Fortaleza (UTC-3)
 ├── pages_modules/              # Páginas da interface
 │   ├── pagina_inicial.py       # Página inicial (apresentação, vídeo de demonstração, tutorial)
 │   ├── informacoes_academicas.py
@@ -380,6 +382,24 @@ cd legado/modelo_com_velocidade
 python main.py --SOURCE ../../videos/x.mp4 --MODEL ../../modelos/yolo11s.pt
 ```
 
+### 8.5 Execução no Streamlit Community Cloud (modo leve)
+
+No plano gratuito do Streamlit Cloud, o uso intenso e contínuo de CPU faz a plataforma reduzir temporariamente a CPU do app e exibir o aviso, em inglês, *"Your app has been throttled"*. O app continua funcionando e o aviso expira sozinho em alguns minutos. A análise de vídeo com o YOLOv11, sobretudo com os modelos L e X, é a causa mais comum.
+
+Quando detecta que está no Streamlit Cloud (`core/ambiente.py`), o app passa a usar um **modo leve**, sem alterar a heurística nem os limiares:
+
+| Ajuste | Local (metodologia) | Streamlit Cloud |
+|---|---|---|
+| Threads do PyTorch | padrão da máquina | 2 |
+| Imagem enviada ao navegador | até 1080 px | até 720 px (a análise continua na resolução escolhida) |
+| Quadros por análise | sem limite | até 900 (30 s a 30 FPS) |
+| Pausa entre quadros | nenhuma | 20 ms |
+| Aviso ao escolher YOLOv11 L ou X | não | sim |
+
+O Estúdio de Inferência também permite analisar **1 a cada N quadros** para reduzir o uso de CPU. O padrão é 1 (todos os quadros), inclusive no Cloud, porque pular quadros dilui o pico de velocidade da queda: no teste com a Queda 01 do UR Fall, analisar 1 a cada 2 quadros fez a versão com velocidade deixar de detectar a queda. O modo leve pode ser forçado ou desligado com a variável de ambiente `DQ_MODO_LEVE=1` ou `DQ_MODO_LEVE=0`.
+
+Os horários exibidos e gravados pelo sistema (ocorrências, relatórios e CSV da linha de comando) usam o fuso **America/Fortaleza (UTC-3)**, o do Piauí, mesmo quando o servidor roda em UTC (`core/horario.py`). O horário que aparece dentro do aviso da plataforma é gerado pelo próprio Streamlit Cloud e não pode ser alterado pelo app.
+
 ## 9. Uso da aplicação web
 
 | Tela | Conteúdo |
@@ -427,6 +447,7 @@ ruff check .
 | `tests/test_video_processor.py` | redimensionamento com proporção, eventos com IDs e disparo no modo estático |
 | `tests/test_benchmark_data.py` | consistência das métricas publicadas com as matrizes de confusão e da Tabela 4 com a soma das Tabelas 1 a 3 |
 | `tests/test_ice_servers.py` | montagem da configuração STUN/TURN a partir de Secrets simulados |
+| `tests/test_horario_ambiente.py` | fuso America/Fortaleza (UTC-3) e padrões do modo leve no Streamlit Cloud |
 | `tests/test_catalogo_videos.py` | catálogo do UR Fall, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
 
 O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) executa `ruff check .` e `pytest -q` em Python 3.11 a cada envio à branch `main` e a cada pull request.

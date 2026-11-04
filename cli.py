@@ -8,12 +8,12 @@ Exemplos:
 import argparse
 import csv
 import os
-from datetime import datetime
 
 import cv2
 
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
+from core.horario import data_hora_local
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import carregar_modelo, processar_frame_detector
@@ -99,7 +99,7 @@ def main(argv=None):
                     modo_velocidade=modo_velocidade, limiar_queda=args.LIMIAR_VEL, limiar_ar=args.LIMIAR_AR
                 )
 
-                agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                agora = data_hora_local()
                 for ev in eventos:
                     chave = chave_evento(ev)
                     if not args.POR_FRAME and chave is not None and not agrupador.novo_evento(chave, numero_frame):

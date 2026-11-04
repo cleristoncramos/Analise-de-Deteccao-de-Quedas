@@ -20,13 +20,16 @@ class PersonTracker:
         self,
         fps_video: Optional[float] = None,
         max_frames_ausente: int = 30,
-        max_pontos_trajetoria: int = 15
+        max_pontos_trajetoria: int = 15,
+        passo_quadros: int = 1
     ):
         self.historico_posicoes: Dict[int, Tuple[int, int, int]] = {}
         self.historico_trajetorias: Dict[int, List[Tuple[int, int]]] = {}
         self.max_pontos_trajetoria = max_pontos_trajetoria
         self.max_frames_ausente = max_frames_ausente
-        self.fator_fps = self._calcular_fator_fps(fps_video)
+        # Processando 1 a cada N quadros do vídeo, cada chamada cobre N quadros reais:
+        # dividir por N mantém a velocidade em pixels por quadro do vídeo original.
+        self.fator_fps = self._calcular_fator_fps(fps_video) / max(1, int(passo_quadros))
         self.frame_atual = 0
 
     @staticmethod

@@ -12,6 +12,10 @@ from pages_modules.auditoria_logs import render_auditoria_logs
 from pages_modules.laboratorio_experimental import render_laboratorio_experimental
 from pages_modules.navegacao import PAGINA_ACADEMICA, PAGINA_INICIAL, PAGINA_SISTEMA, ocultar_sidebar, pagina_atual, ir_para
 
+from core.ambiente import configurar_torch, padroes_execucao
+
+configurar_torch(padroes_execucao().threads_torch)
+
 # Configuração da página
 st.set_page_config(
     page_title="Sistema de Detecção de Quedas | TCC UFPI",

@@ -67,3 +67,10 @@ def test_reset():
     t.atualizar([caixa(100, 100)], [1])
     t.reset()
     assert t.atualizar([caixa(300, 100)], [1])[0]["velocidade"] == 0.0
+
+
+def test_pular_quadros_mantem_velocidade_por_quadro_real():
+    # Processando 1 a cada 2 quadros, 10 px entre chamadas equivalem a 5 px/f do vídeo original
+    t = PersonTracker(fps_video=30, passo_quadros=2)
+    t.atualizar([caixa(100, 100)], [1])
+    assert t.atualizar([caixa(110, 100)], [1])[0]["velocidade"] == pytest.approx(5.0)

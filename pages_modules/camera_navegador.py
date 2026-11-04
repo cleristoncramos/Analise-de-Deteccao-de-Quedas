@@ -19,6 +19,7 @@ from streamlit_webrtc import VideoProcessorBase
 
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
+from core.horario import hora_local
 from core.ice_servers import montar_ice_servers, tem_turn
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
@@ -122,7 +123,7 @@ class ProcessadorCamera(VideoProcessorBase):
                 quedas += 1
             self.eventos.put({
                 "Frame": self.numero_frame,
-                "Timestamp": time.strftime("%H:%M:%S"),
+                "Timestamp": hora_local(),
                 "Tipo": ev["tipo"],
                 "Postura": ev["postura"],
                 "Velocidade": ev["velocidade"],
