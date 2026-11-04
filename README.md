@@ -6,7 +6,7 @@ Universidade Federal do Piauí (UFPI) · Centro de Educação Aberta e a Distân
 
 [![Testes](https://github.com/cleristoncramos/Analise-de-Deteccao-de-Quedas/actions/workflows/testes.yml/badge.svg)](https://github.com/cleristoncramos/Analise-de-Deteccao-de-Quedas/actions/workflows/testes.yml)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-1f3a5f)
-![Streamlit](https://img.shields.io/badge/Streamlit-%E2%89%A5%201.50-7b2d26)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.66.1-7b2d26)
 ![YOLOv11](https://img.shields.io/badge/Ultralytics-YOLOv11-9a7b2f)
 [![Aplicação publicada](https://img.shields.io/badge/App-deteccao--quedas.streamlit.app-4f6d5a)](https://deteccao-quedas.streamlit.app)
 
@@ -258,6 +258,9 @@ O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do U
 │   ├── ice_servers.py          # Configuração STUN/TURN da câmera do navegador a partir dos Secrets
 │   ├── catalogo_videos.py      # Catálogo de amostras do UR Fall: download sob demanda, cache e gabarito
 │   ├── ambiente.py             # Detecção do Streamlit Cloud e padrões do modo leve
+│   ├── aceleracao.py           # Exportação do YOLOv11 para OpenVINO (inferência mais rápida na CPU)
+│   ├── video_saida.py          # Gravação do vídeo anotado em MP4 H.264
+│   ├── cache_resultados.py     # Cache dos resultados das amostras do catálogo
 │   └── horario.py              # Horário local no fuso America/Fortaleza (UTC-3)
 ├── pages_modules/              # Páginas da interface
 │   ├── pagina_inicial.py       # Página inicial (apresentação, vídeo de demonstração, tutorial)
@@ -390,11 +393,18 @@ Quando detecta que está no Streamlit Cloud (`core/ambiente.py`), o app passa a 
 
 | Ajuste | Local (metodologia) | Streamlit Cloud |
 |---|---|---|
+| Inferência do YOLOv11 | PyTorch | OpenVINO (cerca de 2× mais rápido na CPU, eventos idênticos) |
 | Threads do PyTorch | padrão da máquina | 2 |
 | Imagem enviada ao navegador | até 1080 px | até 720 px (a análise continua na resolução escolhida) |
 | Quadros por análise | sem limite | até 900 (30 s a 30 FPS) |
 | Pausa entre quadros | nenhuma | 20 ms |
 | Aviso ao escolher YOLOv11 L ou X | não | sim |
+
+**OpenVINO.** No Cloud, o modelo escolhido é exportado uma vez para o formato OpenVINO com entrada dinâmica (`core/aceleracao.py`), que mantém o mesmo pré-processamento retangular do PyTorch. Nos oito vídeos do catálogo do UR Fall, no modo A/B com o YOLOv11s, os eventos (quadro e tipo) e o gabarito foram idênticos aos do PyTorch, com a análise cerca de 2 vezes mais rápida. Se o OpenVINO não estiver disponível, o sistema volta ao PyTorch. Ele pode ser ligado ou desligado com `DQ_OPENVINO=1` ou `DQ_OPENVINO=0`.
+
+**Análise e reprodução separadas.** Como cada quadro passa pelo YOLO, a análise é mais lenta que o vídeo, e exibir os quadros um a um dava a impressão de câmera lenta. Agora, durante a análise, a prévia é atualizada cerca de quatro vezes por segundo, com barra de progresso e tempo restante estimado; ao final, o vídeo anotado (MP4 H.264, `core/video_saida.py`) é exibido na velocidade real do vídeo original.
+
+**Cache de resultados.** Para as amostras do catálogo, o resultado (ocorrências e vídeo anotado) fica guardado por combinação de vídeo, modelo, modo e parâmetros (`core/cache_resultados.py`). Repetir uma análise idêntica é instantâneo.
 
 O Estúdio de Inferência também permite analisar **1 a cada N quadros** para reduzir o uso de CPU. O padrão é 1 (todos os quadros), inclusive no Cloud, porque pular quadros dilui o pico de velocidade da queda: no teste com a Queda 01 do UR Fall, analisar 1 a cada 2 quadros fez a versão com velocidade deixar de detectar a queda. O modo leve pode ser forçado ou desligado com a variável de ambiente `DQ_MODO_LEVE=1` ou `DQ_MODO_LEVE=0`.
 
@@ -447,6 +457,7 @@ ruff check .
 | `tests/test_video_processor.py` | redimensionamento com proporção, eventos com IDs e disparo no modo estático |
 | `tests/test_benchmark_data.py` | consistência das métricas publicadas com as matrizes de confusão e da Tabela 4 com a soma das Tabelas 1 a 3 |
 | `tests/test_ice_servers.py` | montagem da configuração STUN/TURN a partir de Secrets simulados |
+| `tests/test_cache_e_video.py` | cache de resultados das amostras e gravação do vídeo anotado em MP4 H.264 |
 | `tests/test_horario_ambiente.py` | fuso America/Fortaleza (UTC-3) e padrões do modo leve no Streamlit Cloud |
 | `tests/test_catalogo_videos.py` | catálogo do UR Fall, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
 

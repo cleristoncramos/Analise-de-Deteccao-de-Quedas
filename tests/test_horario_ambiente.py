@@ -22,3 +22,4 @@ def test_fora_do_cloud_segue_a_metodologia(monkeypatch):
     monkeypatch.setenv("DQ_MODO_LEVE", "0")
     padroes = ambiente.padroes_execucao()
     assert not padroes.modo_leve and padroes.pular_quadros == 1 and padroes.max_quadros == 0
+    assert not padroes.usar_openvino

@@ -31,11 +31,21 @@ def obter_caminho_modelo(nome_ou_arquivo: str) -> str:
     # 3. Retorna o nome base (o Ultralytics fará o download automático dos pesos oficiais)
     return arquivo_alvo
 
-def carregar_modelo(caminho_ou_nome: str, dispositivo: Optional[str] = None) -> YOLO:
+def carregar_modelo(caminho_ou_nome: str, dispositivo: Optional[str] = None, acelerar: bool = False) -> YOLO:
     """
     Carrega o modelo YOLO na memória com opção de acelerador CPU ou GPU.
     """
     caminho = obter_caminho_modelo(caminho_ou_nome)
+
+    if acelerar:
+        from .aceleracao import exportar_openvino
+
+        pasta_openvino = exportar_openvino(caminho)
+        if pasta_openvino:
+            try:
+                return YOLO(pasta_openvino, task="detect")
+            except Exception:
+                pass  # modelo acelerado inválido: segue com o PyTorch
 
     if dispositivo is None:
         dispositivo = "cuda:0" if torch.cuda.is_available() else "cpu"
