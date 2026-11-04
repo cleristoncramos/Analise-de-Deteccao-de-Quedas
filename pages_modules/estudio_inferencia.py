@@ -170,12 +170,16 @@ def mostrar_gabarito(item: dict, resultados):
             (st.success if sigla in ("VP", "VN") else st.error)(texto)
 
 
-def mostrar_resultado(dados: dict, video, amostra, modo_execucao: str):
-    """Exibe o vídeo anotado em velocidade real e, para amostras do catálogo, a comparação com o gabarito."""
+def mostrar_resultado(dados: dict, video, amostra, modo_execucao: str, area_video=None):
+    """Exibe o vídeo anotado em velocidade real e, para amostras do catálogo, a comparação com o gabarito.
+
+    `area_video` é o espaço da prévia: o vídeo ocupa o mesmo lugar, sem repetir a imagem do último quadro.
+    """
     if video:
-        st.subheader("Vídeo anotado em velocidade real")
-        st.video(Path(video).read_bytes(), format="video/mp4")
-        st.caption("Reprodução na taxa de quadros do vídeo original, com as caixas, a postura e os alertas da análise.")
+        with (area_video.container() if area_video is not None else st.container()):
+            st.video(Path(video).read_bytes(), format="video/mp4")
+            st.caption("Vídeo anotado em velocidade real, na taxa de quadros do vídeo original, com as caixas, a "
+                       "postura e os alertas da análise.")
     if dados.get("concluido") and amostra:
         resultados = []
         if modo_execucao in (MODO_SEM, MODO_AB):
@@ -433,14 +437,17 @@ def render_estudio_inferencia():
     m_pessoas = telemetria_col2.empty()
     m_quedas = telemetria_col3.empty()
 
-    st.caption("Prévia da análise, atualizada algumas vezes por segundo. Ao final, o vídeo anotado é exibido "
-               "na velocidade real do vídeo original.")
-    if modo_execucao == MODO_AB:
-        col_v1, col_v2 = st.columns(2)
-        view_left = col_v1.empty()
-        view_right = col_v2.empty()
-    else:
-        view_main = st.empty()
+    # A prévia fica num espaço próprio, removido ao final para dar lugar ao vídeo anotado
+    area_previa = st.empty()
+    with area_previa.container():
+        st.caption("Prévia da análise, atualizada algumas vezes por segundo. Ao final, o vídeo anotado é exibido "
+                   "na velocidade real do vídeo original.")
+        if modo_execucao == MODO_AB:
+            col_v1, col_v2 = st.columns(2)
+            view_left = col_v1.empty()
+            view_right = col_v2.empty()
+        else:
+            view_main = st.empty()
 
     alert_placeholder = st.empty()
 
@@ -586,4 +593,5 @@ def render_estudio_inferencia():
             salvar_resultado(chave_cache, dados, video)
         except OSError:
             pass  # sem espaço em disco, por exemplo: só não haverá reaproveitamento
-    mostrar_resultado(dados, video, amostra_catalogo, modo_execucao)
+    # Sem vídeo (falha na gravação), a prévia do último quadro continua na tela como reserva
+    mostrar_resultado(dados, video, amostra_catalogo, modo_execucao, area_video=area_previa if video else None)
