@@ -325,7 +325,7 @@ def render_estudio_inferencia():
             '<div class="info-tooltip-linha"><span class="info-tooltip" tabindex="0" role="button" '
             'aria-label="Sobre o modo leve da versão publicada" aria-describedby="dica-modo-leve">'
             '<span class="info-tooltip-icone" aria-hidden="true">info</span>Modo leve'
-            f'<span class="info-tooltip-texto" role="tooltip" id="dica-modo-leve">{texto}</span></span></div>',
+            f'<span class="info-tooltip-texto" role="tooltip" id="dica-modo-leve" lang="pt-BR">{texto}</span></span></div>',
             unsafe_allow_html=True,
         )
 

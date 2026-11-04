@@ -228,7 +228,9 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
     color: var(--tinta);
     font-size: 0.78rem;
     line-height: 1.5;
-    text-align: center;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
     white-space: normal;
     opacity: 0;
     visibility: hidden;
