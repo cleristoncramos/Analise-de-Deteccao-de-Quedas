@@ -1,0 +1,73 @@
+{
+  "fonte": "UR Fall Detection Dataset",
+  "pagina": "https://fenix.ur.edu.pl/mkepski/ds/uf.html",
+  "licenca": "Creative Commons BY-NC-SA 4.0",
+  "citacao": "KWOLEK, Bogdan; KEPSKI, Michal. Human fall detection on embedded platform using depth maps and wireless accelerometer. Computer Methods and Programs in Biomedicine, v. 117, n. 3, p. 489-501, dez. 2014.",
+  "observacao": "Cada MP4 traz a profundidade (metade esquerda) e o RGB (metade direita) da câmera 0, paralela ao chão. O sistema analisa só a metade RGB.",
+  "videos": [
+    {
+      "id": "fall-01",
+      "nome": "Queda 01 · escritório",
+      "arquivo": "fall-01-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-01-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "fall-10",
+      "nome": "Queda 10 · escritório",
+      "arquivo": "fall-10-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-10-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "fall-20",
+      "nome": "Queda 20 · escritório, outro ângulo",
+      "arquivo": "fall-20-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-20-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "fall-25",
+      "nome": "Queda 25 · escritório, outro ângulo",
+      "arquivo": "fall-25-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-25-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "adl-01",
+      "nome": "Atividade diária 01 · sala, sentar-se",
+      "arquivo": "adl-01-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-01-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "adl-10",
+      "nome": "Atividade diária 10 · sala, deitar-se",
+      "arquivo": "adl-10-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-10-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "adl-30",
+      "nome": "Atividade diária 30 · quarto, agachar-se",
+      "arquivo": "adl-30-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-30-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita"
+    },
+    {
+      "id": "adl-40",
+      "nome": "Atividade diária 40 · quarto, apoiar-se no chão",
+      "arquivo": "adl-40-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-40-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita"
+    }
+  ]
+}

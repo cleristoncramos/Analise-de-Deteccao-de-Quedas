@@ -6,6 +6,14 @@ import cv2
 import streamlit as st
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
+from core.catalogo_videos import (
+    ROTULOS,
+    ErroDownloadVideo,
+    avaliar_resultado,
+    carregar_catalogo,
+    obter_video,
+    recortar_quadro,
+)
 from core.eventos import AgrupadorEventos, chave_evento
 from core.heuristics import analisar_interacoes
 from core.tracker import PersonTracker
@@ -79,6 +87,73 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
             "Modelo": modelo_selecionado
         })
     return quedas
+
+
+RESULTADO_GABARITO = {
+    "VP": ("Verdadeiro positivo", "acerto: a queda foi detectada"),
+    "VN": ("Verdadeiro negativo", "acerto: nenhuma queda registrada"),
+    "FP": ("Falso positivo", "erro: alarme falso em atividade normal"),
+    "FN": ("Falso negativo", "erro: a queda não foi detectada"),
+}
+
+
+def escolher_amostra():
+    """Lista o catálogo do UR Fall e os vídeos locais de `videos/`; baixa a amostra escolhida se preciso.
+
+    Retorna (caminho_video, origem_rotulo, item_do_catalogo ou None).
+    """
+    try:
+        catalogo = carregar_catalogo()
+    except (OSError, ValueError) as exc:
+        st.warning(f"Não foi possível ler o catálogo de amostras ({exc}).")
+        catalogo = {"videos": []}
+
+    opcoes = {f"{v['nome']} — esperado: {ROTULOS[v['rotulo']].lower()}": v for v in catalogo["videos"]}
+    pasta_videos = "videos"
+    if os.path.isdir(pasta_videos):
+        for arquivo in sorted(os.listdir(pasta_videos)):
+            if arquivo.lower().endswith((".mp4", ".avi", ".mov")):
+                opcoes[f"{arquivo} — vídeo local"] = os.path.join(pasta_videos, arquivo)
+
+    if not opcoes:
+        st.warning("Nenhuma amostra disponível. Faça o upload de um arquivo ou use a câmera do navegador.")
+        return None, "Vídeo", None
+
+    escolha = st.selectbox("Escolha uma amostra:", list(opcoes))
+    item = opcoes[escolha]
+    if catalogo.get("citacao"):
+        st.caption(f"Amostras do UR Fall Detection Dataset, usadas para fins acadêmicos não comerciais conforme "
+                   f"a licença do conjunto ({catalogo.get('licenca', 'CC BY-NC-SA 4.0')}). Fonte: "
+                   f"{catalogo['citacao']} Disponível em: {catalogo.get('pagina', '')}.")
+
+    if isinstance(item, str):
+        return item, os.path.basename(item), None
+
+    try:
+        with st.spinner(f"Baixando {item['arquivo']} do UR Fall Detection Dataset (na primeira vez)..."):
+            caminho = obter_video(item)
+    except ErroDownloadVideo as exc:
+        st.warning(f"{exc} O site do UR Fall Detection Dataset pode estar fora do ar no momento. "
+                   "Tente de novo mais tarde ou use a opção **Upload de Arquivo de Vídeo** com um vídeo próprio.")
+        return None, item["nome"], None
+    if item.get("recorte"):
+        st.caption("Este vídeo traz a profundidade e a imagem colorida lado a lado; a análise usa só a imagem colorida.")
+    return str(caminho), item["nome"], item
+
+
+def mostrar_gabarito(item: dict, resultados):
+    """Compara o resultado de cada modo com o rótulo esperado da amostra do catálogo."""
+    st.subheader("Comparação com o gabarito")
+    esperado = ROTULOS[item["rotulo"]]
+    colunas = st.columns(len(resultados))
+    for coluna, (modo, quedas) in zip(colunas, resultados):
+        sigla = avaliar_resultado(item["rotulo"], quedas > 0)
+        nome, explicacao = RESULTADO_GABARITO[sigla]
+        sistema = f"{quedas} queda(s) registrada(s)" if quedas else "nenhuma queda registrada"
+        texto = (f"**{modo}**  \nEsperado: **{esperado}**  \nSistema: **{sistema}**  \n"
+                 f"Resultado: **{sigla} · {nome}** ({explicacao})")
+        with coluna:
+            (st.success if sigla in ("VP", "VN") else st.error)(texto)
 
 
 def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
@@ -206,6 +281,7 @@ def render_estudio_inferencia():
 
     caminho_video = None
     origem_rotulo = "Vídeo"
+    amostra_catalogo = None
 
     if tipo_fonte == FONTE_UPLOAD:
         arquivo_upload = st.file_uploader("Selecione um vídeo (.mp4, .avi, .mov)", type=["mp4", "avi", "mov"])
@@ -214,15 +290,7 @@ def render_estudio_inferencia():
             origem_rotulo = arquivo_upload.name
 
     elif tipo_fonte == FONTE_AMOSTRA:
-        pasta_videos = "videos"
-        os.makedirs(pasta_videos, exist_ok=True)
-        amostras = sorted(f for f in os.listdir(pasta_videos) if f.lower().endswith((".mp4", ".avi", ".mov")))
-        if amostras:
-            video_escolhido = st.selectbox("Escolha uma amostra disponível:", amostras)
-            caminho_video = os.path.join(pasta_videos, video_escolhido)
-            origem_rotulo = video_escolhido
-        else:
-            st.warning("Nenhum vídeo encontrado na pasta `videos/`. Faça o upload de um arquivo ou use a câmera do navegador.")
+        caminho_video, origem_rotulo, amostra_catalogo = escolher_amostra()
 
     elif tipo_fonte == FONTE_SERVIDOR:
         st.caption("Usa a câmera do computador que executa o Streamlit. Serve apenas quando o sistema roda na "
@@ -296,16 +364,19 @@ def render_estudio_inferencia():
     quedas_com = 0
     quedas_sem = 0
     inicio_tempo = time.time()
+    recorte = amostra_catalogo.get("recorte") if amostra_catalogo else None
+    concluido = False
 
     try:
         while cap.isOpened():
             t_frame_start = time.time()
             ret, frame = cap.read()
             if not ret:
+                concluido = True
                 break
 
             numero_frame += 1
-            frame = redimensionar_frame(frame, largura_alvo=resolucao_alvo)
+            frame = redimensionar_frame(recortar_quadro(frame, recorte), largura_alvo=resolucao_alvo)
 
             # Uma única inferência por frame alimenta os dois ramos heurísticos
             pessoas = processar_frame_detector(modelo, frame, tracker=tracker, confianca=conf_min)
@@ -362,3 +433,11 @@ def render_estudio_inferencia():
             f"Processamento concluído: {numero_frame} frames analisados em {tempo_total:.1f}s "
             f"(FPS Médio: {numero_frame / max(0.001, tempo_total):.1f})."
         )
+
+    if concluido and amostra_catalogo:
+        resultados = []
+        if executar_sem:
+            resultados.append(("Sem Velocidade (linha de base)", quedas_sem))
+        if executar_com:
+            resultados.append(("Com Velocidade (proposta)", quedas_com))
+        mostrar_gabarito(amostra_catalogo, resultados)

@@ -167,6 +167,15 @@ $$\text{Acurácia} = \frac{TP + TN}{TP + TN + FP + FN} \qquad \text{Precisão} =
 
 Os valores numéricos de todas as tabelas estão em [`data/tcc_benchmark_data.json`](data/tcc_benchmark_data.json), que é a fonte usada pela interface e pelos testes.
 
+### 4.7 Amostras do UR Fall no aplicativo
+
+O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do UR Fall Detection Dataset (quatro quedas e quatro atividades de vida diária, em três ambientes), com a URL de origem e o rótulo esperado de cada um. Os vídeos não são versionados: ao escolher **Amostra Pré-Carregada** no Estúdio de Inferência, o aplicativo baixa o arquivo do site do dataset e o guarda em cache local (`core/catalogo_videos.py`), reaproveitando-o nas próximas execuções.
+
+- **Câmera e recorte.** São usados os vídeos da câmera 0, paralela ao chão. Cada arquivo traz a profundidade (metade esquerda) e a imagem colorida (metade direita) lado a lado; a análise usa apenas a metade colorida.
+- **Gabarito.** Ao fim da análise de uma amostra, o aplicativo compara o resultado de cada modo com o rótulo esperado e o classifica como verdadeiro positivo, verdadeiro negativo, falso positivo ou falso negativo.
+- **Indisponibilidade.** Se o site do dataset estiver fora do ar, o aplicativo exibe um aviso e sugere o envio de um vídeo próprio pela opção **Upload de Arquivo de Vídeo**.
+- **Licença.** O conjunto é distribuído sob a licença Creative Commons BY-NC-SA 4.0, para uso acadêmico não comercial, com a citação indicada na [seção 14](#14-como-citar).
+
 ## 5. Resultados
 
 ### 5.1 Desempenho global (79 eventos)
@@ -246,7 +255,8 @@ Os valores numéricos de todas as tabelas estão em [`data/tcc_benchmark_data.js
 │   ├── heuristics.py           # Postura (AR), classe de movimento, confirmação de queda, proximidade, v normalizada
 │   ├── video_processor.py      # Redimensionamento, desenho das anotações e geração dos eventos por quadro
 │   ├── eventos.py              # AgrupadorEventos: agrupa ocorrências por pessoa/dupla com período de carência
-│   └── ice_servers.py          # Configuração STUN/TURN da câmera do navegador a partir dos Secrets
+│   ├── ice_servers.py          # Configuração STUN/TURN da câmera do navegador a partir dos Secrets
+│   └── catalogo_videos.py      # Catálogo de amostras do UR Fall: download sob demanda, cache e gabarito
 ├── pages_modules/              # Páginas da interface
 │   ├── pagina_inicial.py       # Página inicial (apresentação, vídeo de demonstração, tutorial)
 │   ├── informacoes_academicas.py
@@ -259,6 +269,7 @@ Os valores numéricos de todas as tabelas estão em [`data/tcc_benchmark_data.js
 │   └── navegacao.py            # Controle da tela ativa (página inicial, acadêmica ou sistema)
 ├── components/                 # Gráficos Plotly e cartões reutilizáveis
 ├── data/tcc_benchmark_data.json  # Métricas do artigo (fonte única para interface e testes)
+├── videos/catalogo.json        # Amostras do UR Fall (URL e rótulo esperado); os .mp4 não são versionados
 ├── assets/                     # Estilos, logotipos institucionais e vídeo de demonstração
 ├── tools/gerar_video_demo.py   # Gera o vídeo de demonstração da página inicial
 ├── tests/                      # Testes automatizados (pytest)
@@ -376,7 +387,7 @@ python main.py --SOURCE ../../videos/x.mp4 --MODEL ../../modelos/yolo11s.pt
 | **Página inicial** | apresentação do projeto, vídeo de demonstração da heurística, indicadores do artigo, tutorial em quatro etapas e primeiros passos |
 | **Informações Acadêmicas** | identificação do trabalho, instituição, curso, autoria, orientação, tecnologias e bases de dados |
 | **Visão Geral e Artigo** | contexto, heurística bimodal com fórmulas, bases de dados e principais conclusões |
-| **Estúdio de Inferência** | execução sobre upload, amostra da pasta `videos/`, câmera do navegador ou webcam local; modos Bimodal, Estático e Comparativo A/B; calibração de confiança, limiares de AR, velocidade e proximidade, resolução, normalização por FPS e carência de eventos |
+| **Estúdio de Inferência** | execução sobre upload, amostras do UR Fall baixadas na hora (com comparação ao gabarito) ou vídeos da pasta `videos/`, câmera do navegador ou webcam local; modos Bimodal, Estático e Comparativo A/B; calibração de confiança, limiares de AR, velocidade e proximidade, resolução, normalização por FPS e carência de eventos |
 | **Dashboard Científico** | Tabelas 1 a 4, explorador de matrizes de confusão, gráfico de radar por modelo e comparação de falsos positivos |
 | **Auditoria e Logs** | tabela de ocorrências da sessão, com filtros e exportação em CSV, Excel e relatório técnico em PDF |
 | **Laboratório Experimental** | simulador da perda de escala no eixo Z e da velocidade normalizada $v_{norm} = \frac{v}{\sqrt{w \cdot h}} \times 100$, com limiar de 12%, e discussão da transição para estimativa de pose |
@@ -416,6 +427,7 @@ ruff check .
 | `tests/test_video_processor.py` | redimensionamento com proporção, eventos com IDs e disparo no modo estático |
 | `tests/test_benchmark_data.py` | consistência das métricas publicadas com as matrizes de confusão e da Tabela 4 com a soma das Tabelas 1 a 3 |
 | `tests/test_ice_servers.py` | montagem da configuração STUN/TURN a partir de Secrets simulados |
+| `tests/test_catalogo_videos.py` | catálogo do UR Fall, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
 
 O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) executa `ruff check .` e `pytest -q` em Python 3.11 a cada envio à branch `main` e a cada pull request.
 
@@ -424,7 +436,7 @@ O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) execut
 - **Pesos.** Foram utilizados os pesos oficiais pré-treinados do YOLOv11 (n, s, m, l e x), sem ajuste fino.
 - **Parâmetros.** Os valores padrão da interface e da linha de comando são os da metodologia: largura de 1080 px, confiança 0,5, AR < 0,75, v ≥ 15 px/f na referência de 30 FPS, proximidade de 60 px e carência de 2 s.
 - **Métricas.** Os números do artigo estão em `data/tcc_benchmark_data.json`, e o teste `test_benchmark_data.py` recalcula acurácia, precisão, revocação e F1 a partir das matrizes de confusão.
-- **Vídeos.** Os vídeos de avaliação não são versionados (`*.mp4` está no `.gitignore`). Para reproduzir os experimentos, coloque-os em `videos/` e use a execução em lote da [seção 8.4](#84-linha-de-comando).
+- **Vídeos.** Os vídeos de avaliação não são versionados (`*.mp4` está no `.gitignore`); as oito amostras do UR Fall são baixadas sob demanda a partir de `videos/catalogo.json`. Para reproduzir os experimentos, coloque-os em `videos/` e use a execução em lote da [seção 8.4](#84-linha-de-comando).
 - **Vídeo de demonstração.** A animação da página inicial é sintética, gerada por `python tools/gerar_video_demo.py`; ela ilustra a heurística e não faz parte das bases de avaliação.
 
 ## 13. Trabalhos futuros
@@ -439,6 +451,12 @@ O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) execut
 Formato ABNT:
 
 > SOARES, Brendo Alves. **Aplicação de Visão Computacional para Prevenção de Acidentes em Ambientes Escolares**: uma Prova de Conceito (PoC). Orientadores: Wener Borges de Sampaio e Martony Demes da Silva. Trabalho de Conclusão de Curso (Curso Superior de Tecnologia em Gestão de Dados) – Centro de Educação Aberta e a Distância, Universidade Federal do Piauí, Teresina, [s.d.].
+
+### Referência do conjunto de dados
+
+O uso do UR Fall Detection Dataset exige a citação do trabalho de seus autores:
+
+> KWOLEK, Bogdan; KEPSKI, Michal. Human fall detection on embedded platform using depth maps and wireless accelerometer. **Computer Methods and Programs in Biomedicine**, v. 117, n. 3, p. 489-501, dez. 2014. Conjunto de dados disponível em: <https://fenix.ur.edu.pl/mkepski/ds/uf.html>.
 
 ## 15. Licença e uso
 

@@ -101,8 +101,18 @@ def render_informacoes_academicas():
     st.subheader("Bases de dados da avaliação")
     st.markdown('<table class="ficha">' + "".join([
         _linha("Dataset simulado (escola)", "Gravado em sala de aula com quedas ensaiadas, oclusões e movimentação em grupo."),
-        _linha("UR Fall Detection Dataset", "Benchmark da literatura com 30 quedas e 30 atividades de vida diária."),
+        _linha("UR Fall Detection Dataset", "Benchmark da literatura com 30 quedas e 30 atividades de vida diária. "
+               "Oito vídeos do conjunto ficam disponíveis como amostras no Estúdio de Inferência."),
         _linha("Vídeos de domínio público", "Cenas reais usadas como teste de estresse de iluminação, ruído e eixo Z."),
+    ]) + "</table>", unsafe_allow_html=True)
+
+    st.subheader("Referência do conjunto de dados")
+    st.markdown('<table class="ficha">' + "".join([
+        _linha("UR Fall Detection Dataset", "KWOLEK, Bogdan; KEPSKI, Michal. Human fall detection on embedded platform "
+               "using depth maps and wireless accelerometer. <i>Computer Methods and Programs in Biomedicine</i>, "
+               "v. 117, n. 3, p. 489-501, dez. 2014."),
+        _linha("Disponível em", '<a href="https://fenix.ur.edu.pl/mkepski/ds/uf.html">fenix.ur.edu.pl/mkepski/ds/uf.html</a>'),
+        _linha("Licença", "Creative Commons BY-NC-SA 4.0, destinada a uso acadêmico não comercial."),
     ]) + "</table>", unsafe_allow_html=True)
 
     st.markdown("""
