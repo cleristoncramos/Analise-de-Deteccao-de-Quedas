@@ -2,7 +2,11 @@
 
 MODULO_ESTUDIO = "Estúdio de Inferência"
 MODULO_AUDITORIA = "Auditoria e Logs"
+MODULO_CONJUNTO = "Avaliação do conjunto"
 MODULO_VISAO_GERAL = "Sobre a pesquisa"
+
+GRUPO_RECOMENDADOS = "Exemplos recomendados"
+GRUPO_COMPLETO = "Conjunto completo do UR Fall (70)"
 
 MODO_COM = "Bimodal (Com Velocidade - Proposta)"
 MODO_SEM = "Estático (Sem Velocidade - Linha de Base)"
@@ -19,5 +23,6 @@ CHAVE_MODULO = "modulo_sistema"
 CHAVE_FONTE = "fonte_entrada"
 CHAVE_MODO = "modo_analise"
 CHAVE_AMOSTRA_PADRAO = "amostra_padrao_id"
+CHAVE_GRUPO_AMOSTRAS = "grupo_amostras"
 
 AMOSTRA_EXEMPLO = "fall-01"  # queda detectada nos dois modos: mostra a ferramenta funcionando

@@ -169,12 +169,19 @@ Os valores numéricos de todas as tabelas estão em [`data/tcc_benchmark_data.js
 
 ### 4.7 Amostras do UR Fall no aplicativo
 
-O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do UR Fall Detection Dataset (quatro quedas e quatro atividades de vida diária, em três ambientes), com a URL de origem e o rótulo esperado de cada um. As amostras foram escolhidas entre as que o modo Bimodal com o YOLOv11s classifica corretamente, para que a demonstração mostre a ferramenta funcionando; no modo Estático, a Atividade 10 (deitar-se) gera um falso positivo, o que ilustra o papel do limitador de velocidade. Isso não representa a taxa de acerto geral do sistema, que está na [seção 5](#5-resultados). Os vídeos não são versionados: ao escolher **Amostra Pré-Carregada** no Estúdio de Inferência, o aplicativo baixa o arquivo do site do dataset e o guarda em cache local (`core/catalogo_videos.py`), reaproveitando-o nas próximas execuções.
+O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista os 70 vídeos da câmera 0 do UR Fall Detection Dataset (30 quedas e 40 atividades de vida diária), com a URL de origem, o rótulo esperado e o número de quadros de cada um. No Estúdio, a lista abre nos **Exemplos recomendados**, oito vídeos marcados com `destaque` (quatro quedas e quatro atividades, em três ambientes); a opção **Conjunto completo do UR Fall (70)** mostra todos. Os exemplos recomendados foram escolhidos entre as que o modo Bimodal com o YOLOv11s classifica corretamente, para que a demonstração mostre a ferramenta funcionando; no modo Estático, a Atividade 10 (deitar-se) gera um falso positivo, o que ilustra o papel do limitador de velocidade. Isso não representa a taxa de acerto geral do sistema, que está na [seção 5](#5-resultados). Os vídeos não são versionados: ao escolher **Amostra Pré-Carregada** no Estúdio de Inferência, o aplicativo baixa o arquivo do site do dataset e o guarda em cache local (`core/catalogo_videos.py`), reaproveitando-o nas próximas execuções.
 
 - **Câmera e recorte.** São usados os vídeos da câmera 0, paralela ao chão. Cada arquivo traz a profundidade (metade esquerda) e a imagem colorida (metade direita) lado a lado; a análise usa apenas a metade colorida.
 - **Gabarito.** Ao fim da análise de uma amostra, o aplicativo compara o resultado de cada modo com o rótulo esperado e o classifica como verdadeiro positivo, verdadeiro negativo, falso positivo ou falso negativo.
 - **Indisponibilidade.** Se o site do dataset estiver fora do ar, o aplicativo exibe um aviso e sugere o envio de um vídeo próprio pela opção **Upload de Arquivo de Vídeo**.
 - **Licença.** O conjunto é distribuído sob a licença Creative Commons BY-NC-SA 4.0, para uso acadêmico não comercial, com a citação indicada na [seção 14](#14-como-citar).
+
+### 4.8 Avaliação do conjunto no aplicativo
+
+A tela **Avaliação do conjunto** percorre os vídeos do UR Fall com o botão **Avaliar todos** e recalcula as métricas a cada vídeo concluído: matriz de confusão (TN/FP/FN/TP), acurácia, precisão, revocação e F1, nos dois modos (com e sem velocidade), ao lado da linha da Tabela 2 do artigo para o modelo escolhido. Uma segunda tabela mostra o resultado de cada vídeo (quedas registradas e VP/VN/FP/FN), e o resultado pode ser baixado em CSV. É possível avaliar as 30 primeiras atividades diárias, como no artigo (60 vídeos), ou todas as 40 (70 vídeos).
+
+- **Resultados pré-calculados.** Reproduz, vídeo a vídeo, a avaliação feita pelo CLI (`tools/avaliar_urfall.py`, PyTorch, só a imagem colorida) para os cinco modelos, guardada em [`data/urfall_resultados.csv`](data/urfall_resultados.csv), que tem apenas números e rótulos. É instantâneo e serve para a apresentação, mas só vale para os parâmetros padrão: se a confiança, a razão de aspecto, a velocidade, a resolução, a normalização por FPS ou o salto de quadros forem alterados na barra lateral, a opção fica bloqueada e a avaliação precisa rodar de verdade.
+- **Rodar de verdade.** Analisa cada vídeo agora, com o modelo e os limiares da barra lateral, usando a mesma função de análise do CLI (`core/analise_video.py`). Cada vídeo concluído entra no cache de resultados, então uma avaliação interrompida com **Parar** continua de onde parou. Antes de começar, a tela mostra o tempo estimado; é possível limitar a avaliação às 30 quedas ou aos primeiros N vídeos. No Streamlit Cloud, a avaliação completa leva horas e pode provocar a limitação de CPU da plataforma, o que é avisado na tela.
 
 ## 5. Resultados
 
@@ -256,7 +263,9 @@ O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do U
 │   ├── video_processor.py      # Redimensionamento, desenho das anotações e geração dos eventos por quadro
 │   ├── eventos.py              # AgrupadorEventos: agrupa ocorrências por pessoa/dupla com período de carência
 │   ├── ice_servers.py          # Configuração STUN/TURN da câmera do navegador a partir dos Secrets
-│   ├── catalogo_videos.py      # Catálogo de amostras do UR Fall: download sob demanda, cache e gabarito
+│   ├── catalogo_videos.py      # Catálogo dos 70 vídeos do UR Fall: download sob demanda, cache e gabarito
+│   ├── analise_video.py        # Laço de análise de um vídeo inteiro (CLI e avaliação do conjunto)
+│   ├── metricas_conjunto.py    # Métricas por evento, seleção do conjunto e resultados pré-calculados
 │   ├── ambiente.py             # Detecção do Streamlit Cloud e padrões do modo leve
 │   ├── aceleracao.py           # Exportação do YOLOv11 para OpenVINO (inferência mais rápida na CPU)
 │   ├── video_saida.py          # Gravação do vídeo anotado em MP4 H.264
@@ -269,15 +278,18 @@ O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do U
 │   ├── informacoes_academicas.py
 │   ├── visao_geral.py          # Resumo do trabalho, heurística e bases de dados
 │   ├── estudio_inferencia.py   # Estúdio em tela única: fontes de vídeo, análise, vídeo anotado, gráfico e gabarito
+│   ├── avaliacao_conjunto.py   # Avaliação do conjunto do UR Fall com métricas recalculadas a cada vídeo
 │   ├── camera_navegador.py     # Processamento ao vivo da câmera do navegador (WebRTC)
 │   ├── auditoria_logs.py       # Log de ocorrências e exportação em CSV, Excel e PDF
 │   ├── constantes.py           # Rótulos do menu, das fontes e dos modos compartilhados entre as páginas
 │   └── navegacao.py            # Controle da tela ativa e atalho do Get Started para o Estúdio
 ├── components/                 # Gráficos Plotly e cartões reutilizáveis
 ├── data/tcc_benchmark_data.json  # Métricas do artigo (fonte única para interface e testes)
-├── videos/catalogo.json        # Amostras do UR Fall (URL e rótulo esperado); os .mp4 não são versionados
+├── data/urfall_resultados.csv  # Quedas registradas por vídeo nos 5 modelos (avaliação pelo CLI, sem vídeos)
+├── videos/catalogo.json        # Os 70 vídeos do UR Fall (URL, rótulo e quadros); os .mp4 não são versionados
 ├── assets/                     # Estilos, logotipos institucionais e vídeo de demonstração
 ├── tools/gerar_video_demo.py   # Gera o vídeo de demonstração da página inicial
+├── tools/avaliar_urfall.py     # Avalia o CLI nos 70 vídeos do UR Fall e compara com a Tabela 2
 ├── tests/                      # Testes automatizados (pytest)
 ├── legado/                     # Primeira versão (Google Colab), scripts originais dos experimentos e, em
 │                               # legado/interface/, o Dashboard Científico e o Laboratório Experimental, fora da demo
@@ -351,6 +363,7 @@ python cli.py --SOURCE 0 --MODEL yolo11n.pt
 | `--SEM-CORRECAO-FPS` | desligado | usa px/f sem converter para a referência de 30 FPS |
 | `--POR-FRAME` | desligado | registra todo quadro que satisfaz a heurística, sem agrupar em eventos |
 | `--CARENCIA` | `2.0` | segundos sem ocorrência para que a mesma pessoa ou dupla gere um novo evento |
+| `--RECORTE` | `nenhum` | analisa só uma metade do quadro; nos vídeos do UR Fall, `direita` é a imagem colorida |
 | `--SEM-JANELA` | desligado | processa sem abrir a janela de visualização (mais rápido em lote) |
 
 Os relatórios CSV são gravados em `relatorios/<vídeo>/<modelo>/`.
@@ -378,6 +391,12 @@ for video in videos/*.mp4; do
     done
   done
 done
+```
+
+Avaliação no UR Fall Detection Dataset, com comparação com a Tabela 2 do artigo. Os vídeos são baixados para o cache na primeira vez; a análise retoma vídeo a vídeo se for interrompida, e os resultados vão para `relatorios/urfall/` (fora do git):
+
+```bash
+python tools/avaliar_urfall.py --MODELOS yolo11n.pt yolo11s.pt yolo11m.pt yolo11l.pt yolo11x.pt --SAIDA relatorios/urfall/somente_cor
 ```
 
 Os scripts originais continuam em `legado/` e devem ser executados de dentro da própria pasta, por exemplo:
@@ -421,6 +440,7 @@ A demo foi organizada para mostrar a ferramenta funcionando; os resultados compl
 | **Página inicial** | apresentação do projeto, vídeo de demonstração da heurística, recursos da ferramenta, tutorial em quatro etapas e primeiros passos. O botão **Get Started** abre o Estúdio já com a amostra "Queda 01" no modo A/B, pronta para rodar com um clique |
 | **Informações Acadêmicas** | identificação do trabalho, instituição, curso, autoria, orientação, tecnologias e bases de dados |
 | **Estúdio de Inferência** | tela única: à esquerda, a fonte do vídeo, os botões, a telemetria e o gabarito; à direita, a prévia e depois o vídeo anotado em velocidade real, com o gráfico de razão de aspecto e velocidade da pessoa principal (limiares e quedas marcados). Fontes: amostras do UR Fall com gabarito, upload, link (YouTube, arquivo na web ou transmissão HLS/RTSP/RTMP), câmera do navegador e webcam local. Modos Bimodal, Estático e Comparativo A/B, com calibração dos limiares na barra lateral |
+| **Avaliação do conjunto** | botão **Avaliar todos** para os vídeos do UR Fall, com as métricas recalculadas a cada vídeo ao lado da Tabela 2, a partir dos resultados pré-calculados ou de uma análise ao vivo ([seção 4.8](#48-avaliação-do-conjunto-no-aplicativo)) |
 | **Auditoria e Logs** | tabela de ocorrências da sessão, com filtros e exportação em CSV, Excel e relatório técnico em PDF |
 | **Sobre a pesquisa** | contexto, heurística bimodal com fórmulas e bases de dados |
 
@@ -464,7 +484,9 @@ ruff check .
 | `tests/test_fonte_link_serie.py` | validação de links, YouTube simulado (inclusive bloqueio), série de movimento e gráfico do Estúdio |
 | `tests/test_cache_e_video.py` | cache de resultados das amostras e gravação do vídeo anotado em MP4 H.264 |
 | `tests/test_horario_ambiente.py` | fuso America/Fortaleza (UTC-3) e padrões do modo leve no Streamlit Cloud |
-| `tests/test_catalogo_videos.py` | catálogo do UR Fall, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
+| `tests/test_catalogo_videos.py` | catálogo dos 70 vídeos do UR Fall e exemplos recomendados, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
+| `tests/test_metricas_conjunto.py` | métricas por evento, seleção de 30 ou 40 ADL, resultados pré-calculados dos 5 modelos (o v11m reproduz a Tabela 2) e bloqueio do pré-calculado com outros parâmetros |
+| `tests/test_avaliar_urfall.py` | lista de vídeos, resumo com 30 e 40 ADL e comparação com a Tabela 2 do script de avaliação |
 
 O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) executa `ruff check .` e `pytest -q` em Python 3.11 a cada envio à branch `main` e a cada pull request.
 
@@ -473,7 +495,7 @@ O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) execut
 - **Pesos.** Foram utilizados os pesos oficiais pré-treinados do YOLOv11 (n, s, m, l e x), sem ajuste fino.
 - **Parâmetros.** Os valores padrão da interface e da linha de comando são os da metodologia: largura de 1080 px, confiança 0,5, AR < 0,75, v ≥ 15 px/f na referência de 30 FPS, proximidade de 60 px e carência de 2 s.
 - **Métricas.** Os números do artigo estão em `data/tcc_benchmark_data.json`, e o teste `test_benchmark_data.py` recalcula acurácia, precisão, revocação e F1 a partir das matrizes de confusão.
-- **Vídeos.** Os vídeos de avaliação não são versionados (`*.mp4` está no `.gitignore`); as oito amostras do UR Fall são baixadas sob demanda a partir de `videos/catalogo.json`. Para reproduzir os experimentos, coloque-os em `videos/` e use a execução em lote da [seção 8.4](#84-linha-de-comando).
+- **Vídeos.** Os vídeos de avaliação não são versionados (`*.mp4` está no `.gitignore`); os 70 vídeos do UR Fall são baixados sob demanda a partir de `videos/catalogo.json`, e `tools/avaliar_urfall.py` refaz a avaliação do conjunto. Para reproduzir os experimentos, coloque-os em `videos/` e use a execução em lote da [seção 8.4](#84-linha-de-comando).
 - **Vídeo de demonstração.** A animação da página inicial é sintética, gerada por `python tools/gerar_video_demo.py`; ela ilustra a heurística e não faz parte das bases de avaliação.
 
 ## 13. Trabalhos futuros

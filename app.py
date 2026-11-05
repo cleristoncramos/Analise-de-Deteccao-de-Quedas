@@ -8,7 +8,14 @@ from pages_modules.informacoes_academicas import render_informacoes_academicas
 from pages_modules.visao_geral import render_visao_geral
 from pages_modules.estudio_inferencia import render_estudio_inferencia
 from pages_modules.auditoria_logs import render_auditoria_logs
-from pages_modules.constantes import CHAVE_MODULO, MODULO_AUDITORIA, MODULO_ESTUDIO, MODULO_VISAO_GERAL
+from pages_modules.avaliacao_conjunto import render_avaliacao_conjunto
+from pages_modules.constantes import (
+    CHAVE_MODULO,
+    MODULO_AUDITORIA,
+    MODULO_CONJUNTO,
+    MODULO_ESTUDIO,
+    MODULO_VISAO_GERAL,
+)
 from pages_modules.navegacao import PAGINA_ACADEMICA, PAGINA_INICIAL, PAGINA_SISTEMA, ocultar_sidebar, pagina_atual, ir_para
 
 from core.ambiente import configurar_torch, padroes_execucao
@@ -32,6 +39,7 @@ if os.path.isfile(css_path):
 # A demo destaca a ferramenta; os resultados do artigo (tabelas e trabalhos futuros) ficam no README
 MODULOS = {
     MODULO_ESTUDIO: render_estudio_inferencia,
+    MODULO_CONJUNTO: render_avaliacao_conjunto,
     MODULO_AUDITORIA: render_auditoria_logs,
     MODULO_VISAO_GERAL: render_visao_geral,
 }

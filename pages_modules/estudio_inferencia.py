@@ -16,6 +16,7 @@ from core.catalogo_videos import (
     ErroDownloadVideo,
     avaliar_resultado,
     carregar_catalogo,
+    exemplos_recomendados,
     obter_video,
     recortar_quadro,
 )
@@ -32,12 +33,15 @@ from pages_modules.camera_navegador import TRADUCOES, ParametrosAnalise, Process
 from pages_modules.constantes import (
     CHAVE_AMOSTRA_PADRAO,
     CHAVE_FONTE,
+    CHAVE_GRUPO_AMOSTRAS,
     CHAVE_MODO,
     FONTE_AMOSTRA,
     FONTE_LINK,
     FONTE_NAVEGADOR,
     FONTE_SERVIDOR,
     FONTE_UPLOAD,
+    GRUPO_COMPLETO,
+    GRUPO_RECOMENDADOS,
     MODO_AB,
     MODO_COM,
     MODO_SEM,
@@ -149,9 +153,17 @@ def escolher_amostra():
         st.warning(f"Não foi possível ler o catálogo de amostras ({exc}).")
         catalogo = {"videos": []}
 
-    opcoes = {f"{v['nome']} — esperado: {ROTULOS[v['rotulo']].lower()}": v for v in catalogo["videos"]}
+    padrao = st.session_state.pop(CHAVE_AMOSTRA_PADRAO, None)  # definido pelo Get Started da página inicial
+    recomendados = exemplos_recomendados(catalogo)
+    if padrao or st.session_state.get(CHAVE_GRUPO_AMOSTRAS) not in (GRUPO_RECOMENDADOS, GRUPO_COMPLETO):
+        st.session_state[CHAVE_GRUPO_AMOSTRAS] = GRUPO_RECOMENDADOS
+    grupo = st.radio("Amostras", [GRUPO_RECOMENDADOS, GRUPO_COMPLETO], key=CHAVE_GRUPO_AMOSTRAS, horizontal=True,
+                     label_visibility="collapsed")
+    videos = recomendados if grupo == GRUPO_RECOMENDADOS and recomendados else catalogo["videos"]
+
+    opcoes = {f"{v['nome']} — esperado: {ROTULOS[v['rotulo']].lower()}": v for v in videos}
     pasta_videos = "videos"
-    if os.path.isdir(pasta_videos):
+    if grupo == GRUPO_RECOMENDADOS and os.path.isdir(pasta_videos):
         for arquivo in sorted(os.listdir(pasta_videos)):
             if arquivo.lower().endswith((".mp4", ".avi", ".mov")):
                 opcoes[f"{arquivo} — vídeo local"] = os.path.join(pasta_videos, arquivo)
@@ -161,7 +173,8 @@ def escolher_amostra():
         return None, "Vídeo", None
 
     rotulos = list(opcoes)
-    padrao = st.session_state.pop(CHAVE_AMOSTRA_PADRAO, None)  # definido pelo Get Started da página inicial
+    if st.session_state.get("amostra_escolhida") not in rotulos:
+        st.session_state.pop("amostra_escolhida", None)  # troca de grupo: volta para o primeiro da lista
     if padrao:
         for rotulo, item in opcoes.items():
             if isinstance(item, dict) and item["id"] == padrao:

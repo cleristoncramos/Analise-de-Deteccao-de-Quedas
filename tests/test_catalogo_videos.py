@@ -8,23 +8,32 @@ from core.catalogo_videos import (
     ErroDownloadVideo,
     avaliar_resultado,
     carregar_catalogo,
+    exemplos_recomendados,
     obter_video,
     recortar_quadro,
 )
+from pages_modules.constantes import AMOSTRA_EXEMPLO
 
 MP4_FALSO = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 100
 VIDEO = {"id": "fall-01", "nome": "Queda 01", "arquivo": "fall-01-cam0.mp4",
          "url": "https://exemplo.org/fall-01-cam0.mp4", "rotulo": "queda", "recorte": "direita"}
 
 
-def test_catalogo_do_repositorio_e_valido_e_equilibrado():
+def test_catalogo_do_repositorio_tem_os_70_videos_da_camera_0():
     catalogo = carregar_catalogo()
     rotulos = [v["rotulo"] for v in catalogo["videos"]]
-    assert 6 <= len(rotulos) <= 10
-    assert rotulos.count("queda") == rotulos.count("nao_queda")
-    assert len({v["id"] for v in catalogo["videos"]}) == len(rotulos)
+    assert rotulos.count("queda") == 30 and rotulos.count("nao_queda") == 40
+    assert len({v["id"] for v in catalogo["videos"]}) == 70
     assert all(v["url"].startswith("https://fenix.ur.edu.pl/mkepski/ds/data/") for v in catalogo["videos"])
+    assert all(v["recorte"] == "direita" and v["quadros"] > 0 for v in catalogo["videos"])
     assert "Kwolek" in catalogo["citacao"].title()
+
+
+def test_exemplos_recomendados_sao_8_equilibrados_e_comecam_pelo_exemplo_do_get_started():
+    recomendados = exemplos_recomendados(carregar_catalogo())
+    rotulos = [v["rotulo"] for v in recomendados]
+    assert len(rotulos) == 8 and rotulos.count("queda") == 4
+    assert recomendados[0]["id"] == AMOSTRA_EXEMPLO
 
 
 def test_catalogo_com_campo_faltando_e_rejeitado(tmp_path):

@@ -465,3 +465,13 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
 @media (max-width: 760px) {
     .cabecalho-academico { flex-direction: column; }
 }
+
+/* Avaliação do conjunto: indica se os números vêm da reprodução pré-calculada ou da análise ao vivo */
+.conjunto-modo {
+    font-size: 0.82rem;
+    border: 1px solid var(--borda);
+    border-left: 3px solid var(--marinho);
+    padding: 0.35rem 0.6rem;
+    margin: 0.4rem 0;
+    background: var(--papel-escuro);
+}

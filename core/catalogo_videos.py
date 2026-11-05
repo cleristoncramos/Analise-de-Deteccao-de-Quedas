@@ -112,3 +112,8 @@ def avaliar_resultado(rotulo: str, houve_queda: bool) -> str:
 
 def descrever_videos(catalogo: Dict) -> List[str]:
     return [f"{v['nome']} (esperado: {ROTULOS[v['rotulo']].lower()})" for v in catalogo.get("videos", [])]
+
+
+def exemplos_recomendados(catalogo: Dict) -> List[Dict]:
+    """Vídeos marcados com "destaque" no catálogo, na ordem indicada."""
+    return sorted((v for v in catalogo.get("videos", []) if v.get("destaque")), key=lambda v: v["destaque"])

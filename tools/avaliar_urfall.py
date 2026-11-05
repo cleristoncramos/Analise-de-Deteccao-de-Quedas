@@ -1,7 +1,7 @@
 """Avalia o pipeline do CLI nos vídeos do UR Fall Detection Dataset e compara com a Tabela 2 do artigo.
 
 Para cada modelo, cada vídeo passa uma vez pelo YOLO (com a mesma função `analisar_video`
-do cli.py) e é avaliado nos dois modos: com velocidade (proposta) e sem velocidade (linha
+de core/analise_video.py, a mesma do cli.py) e é avaliado nos dois modos: com velocidade (proposta) e sem velocidade (linha
 de base). Um vídeo de queda é TP se houver ao menos uma queda registrada (senão FN); uma
 atividade de vida diária (ADL) é FP se houver queda registrada (senão TN).
 
@@ -109,7 +109,7 @@ def avaliar(modelos: List[str], recorte: str, rapido: bool, saida: Path, n_adl: 
     """Roda a avaliação. `carregar`, `abrir` e `baixar` permitem substituir o YOLO, o OpenCV e a rede nos testes."""
     import cv2
 
-    from cli import analisar_video
+    from core.analise_video import analisar_video
     from core.yolo_engine import carregar_modelo
 
     carregar = carregar or (lambda nome: carregar_modelo(nome, acelerar=rapido))

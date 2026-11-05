@@ -3,7 +3,7 @@
   "pagina": "https://fenix.ur.edu.pl/mkepski/ds/uf.html",
   "licenca": "Creative Commons BY-NC-SA 4.0",
   "citacao": "KWOLEK, Bogdan; KEPSKI, Michal. Human fall detection on embedded platform using depth maps and wireless accelerometer. Computer Methods and Programs in Biomedicine, v. 117, n. 3, p. 489-501, dez. 2014.",
-  "observacao": "Cada MP4 traz a profundidade (metade esquerda) e o RGB (metade direita) da câmera 0, paralela ao chão. O sistema analisa só a metade RGB.",
+  "observacao": "Cada MP4 traz a profundidade (metade esquerda) e o RGB (metade direita) da câmera 0, paralela ao chão. O sistema analisa só a metade RGB. Os 8 vídeos com \"destaque\" são os exemplos recomendados; os 70 formam o conjunto completo da câmera 0 (30 quedas e 40 atividades diárias).",
   "videos": [
     {
       "id": "fall-01",
@@ -11,7 +11,90 @@
       "arquivo": "fall-01-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-01-cam0.mp4",
       "rotulo": "queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 1,
+      "quadros": 160,
+      "destaque": 1
+    },
+    {
+      "id": "fall-02",
+      "nome": "Queda 02",
+      "arquivo": "fall-02-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-02-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 2,
+      "quadros": 110
+    },
+    {
+      "id": "fall-03",
+      "nome": "Queda 03",
+      "arquivo": "fall-03-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-03-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 3,
+      "quadros": 215
+    },
+    {
+      "id": "fall-04",
+      "nome": "Queda 04",
+      "arquivo": "fall-04-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-04-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 4,
+      "quadros": 96
+    },
+    {
+      "id": "fall-05",
+      "nome": "Queda 05",
+      "arquivo": "fall-05-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-05-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 5,
+      "quadros": 151
+    },
+    {
+      "id": "fall-06",
+      "nome": "Queda 06",
+      "arquivo": "fall-06-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-06-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 6,
+      "quadros": 100
+    },
+    {
+      "id": "fall-07",
+      "nome": "Queda 07",
+      "arquivo": "fall-07-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-07-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 7,
+      "quadros": 156
+    },
+    {
+      "id": "fall-08",
+      "nome": "Queda 08",
+      "arquivo": "fall-08-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-08-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 8,
+      "quadros": 91
+    },
+    {
+      "id": "fall-09",
+      "nome": "Queda 09",
+      "arquivo": "fall-09-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-09-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 9,
+      "quadros": 185
     },
     {
       "id": "fall-10",
@@ -19,15 +102,20 @@
       "arquivo": "fall-10-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-10-cam0.mp4",
       "rotulo": "queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 10,
+      "quadros": 130,
+      "destaque": 2
     },
     {
-      "id": "fall-20",
-      "nome": "Queda 20 · escritório, outro ângulo",
-      "arquivo": "fall-20-cam0.mp4",
-      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-20-cam0.mp4",
+      "id": "fall-11",
+      "nome": "Queda 11",
+      "arquivo": "fall-11-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-11-cam0.mp4",
       "rotulo": "queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 11,
+      "quadros": 130
     },
     {
       "id": "fall-12",
@@ -35,7 +123,191 @@
       "arquivo": "fall-12-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-12-cam0.mp4",
       "rotulo": "queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 12,
+      "quadros": 110,
+      "destaque": 4
+    },
+    {
+      "id": "fall-13",
+      "nome": "Queda 13",
+      "arquivo": "fall-13-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-13-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 13,
+      "quadros": 85
+    },
+    {
+      "id": "fall-14",
+      "nome": "Queda 14",
+      "arquivo": "fall-14-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-14-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 14,
+      "quadros": 61
+    },
+    {
+      "id": "fall-15",
+      "nome": "Queda 15",
+      "arquivo": "fall-15-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-15-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 15,
+      "quadros": 71
+    },
+    {
+      "id": "fall-16",
+      "nome": "Queda 16",
+      "arquivo": "fall-16-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-16-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 16,
+      "quadros": 55
+    },
+    {
+      "id": "fall-17",
+      "nome": "Queda 17",
+      "arquivo": "fall-17-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-17-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 17,
+      "quadros": 95
+    },
+    {
+      "id": "fall-18",
+      "nome": "Queda 18",
+      "arquivo": "fall-18-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-18-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 18,
+      "quadros": 65
+    },
+    {
+      "id": "fall-19",
+      "nome": "Queda 19",
+      "arquivo": "fall-19-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-19-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 19,
+      "quadros": 100
+    },
+    {
+      "id": "fall-20",
+      "nome": "Queda 20 · escritório, outro ângulo",
+      "arquivo": "fall-20-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-20-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 20,
+      "quadros": 110,
+      "destaque": 3
+    },
+    {
+      "id": "fall-21",
+      "nome": "Queda 21",
+      "arquivo": "fall-21-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-21-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 21,
+      "quadros": 55
+    },
+    {
+      "id": "fall-22",
+      "nome": "Queda 22",
+      "arquivo": "fall-22-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-22-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 22,
+      "quadros": 56
+    },
+    {
+      "id": "fall-23",
+      "nome": "Queda 23",
+      "arquivo": "fall-23-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-23-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 23,
+      "quadros": 75
+    },
+    {
+      "id": "fall-24",
+      "nome": "Queda 24",
+      "arquivo": "fall-24-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-24-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 24,
+      "quadros": 60
+    },
+    {
+      "id": "fall-25",
+      "nome": "Queda 25",
+      "arquivo": "fall-25-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-25-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 25,
+      "quadros": 85
+    },
+    {
+      "id": "fall-26",
+      "nome": "Queda 26",
+      "arquivo": "fall-26-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-26-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 26,
+      "quadros": 61
+    },
+    {
+      "id": "fall-27",
+      "nome": "Queda 27",
+      "arquivo": "fall-27-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-27-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 27,
+      "quadros": 92
+    },
+    {
+      "id": "fall-28",
+      "nome": "Queda 28",
+      "arquivo": "fall-28-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-28-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 28,
+      "quadros": 66
+    },
+    {
+      "id": "fall-29",
+      "nome": "Queda 29",
+      "arquivo": "fall-29-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-29-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 29,
+      "quadros": 99
+    },
+    {
+      "id": "fall-30",
+      "nome": "Queda 30",
+      "arquivo": "fall-30-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/fall-30-cam0.mp4",
+      "rotulo": "queda",
+      "recorte": "direita",
+      "indice": 30,
+      "quadros": 70
     },
     {
       "id": "adl-01",
@@ -43,7 +315,90 @@
       "arquivo": "adl-01-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-01-cam0.mp4",
       "rotulo": "nao_queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 1,
+      "quadros": 150,
+      "destaque": 5
+    },
+    {
+      "id": "adl-02",
+      "nome": "Atividade diária 02",
+      "arquivo": "adl-02-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-02-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 2,
+      "quadros": 180
+    },
+    {
+      "id": "adl-03",
+      "nome": "Atividade diária 03",
+      "arquivo": "adl-03-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-03-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 3,
+      "quadros": 180
+    },
+    {
+      "id": "adl-04",
+      "nome": "Atividade diária 04",
+      "arquivo": "adl-04-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-04-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 4,
+      "quadros": 150
+    },
+    {
+      "id": "adl-05",
+      "nome": "Atividade diária 05",
+      "arquivo": "adl-05-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-05-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 5,
+      "quadros": 180
+    },
+    {
+      "id": "adl-06",
+      "nome": "Atividade diária 06",
+      "arquivo": "adl-06-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-06-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 6,
+      "quadros": 230
+    },
+    {
+      "id": "adl-07",
+      "nome": "Atividade diária 07",
+      "arquivo": "adl-07-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-07-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 7,
+      "quadros": 180
+    },
+    {
+      "id": "adl-08",
+      "nome": "Atividade diária 08",
+      "arquivo": "adl-08-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-08-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 8,
+      "quadros": 180
+    },
+    {
+      "id": "adl-09",
+      "nome": "Atividade diária 09",
+      "arquivo": "adl-09-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-09-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 9,
+      "quadros": 150
     },
     {
       "id": "adl-10",
@@ -51,7 +406,200 @@
       "arquivo": "adl-10-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-10-cam0.mp4",
       "rotulo": "nao_queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 10,
+      "quadros": 300,
+      "destaque": 6
+    },
+    {
+      "id": "adl-11",
+      "nome": "Atividade diária 11",
+      "arquivo": "adl-11-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-11-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 11,
+      "quadros": 300
+    },
+    {
+      "id": "adl-12",
+      "nome": "Atividade diária 12",
+      "arquivo": "adl-12-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-12-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 12,
+      "quadros": 250
+    },
+    {
+      "id": "adl-13",
+      "nome": "Atividade diária 13",
+      "arquivo": "adl-13-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-13-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 13,
+      "quadros": 265
+    },
+    {
+      "id": "adl-14",
+      "nome": "Atividade diária 14",
+      "arquivo": "adl-14-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-14-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 14,
+      "quadros": 235
+    },
+    {
+      "id": "adl-15",
+      "nome": "Atividade diária 15",
+      "arquivo": "adl-15-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-15-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 15,
+      "quadros": 275
+    },
+    {
+      "id": "adl-16",
+      "nome": "Atividade diária 16",
+      "arquivo": "adl-16-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-16-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 16,
+      "quadros": 240
+    },
+    {
+      "id": "adl-17",
+      "nome": "Atividade diária 17",
+      "arquivo": "adl-17-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-17-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 17,
+      "quadros": 230
+    },
+    {
+      "id": "adl-18",
+      "nome": "Atividade diária 18",
+      "arquivo": "adl-18-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-18-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 18,
+      "quadros": 265
+    },
+    {
+      "id": "adl-19",
+      "nome": "Atividade diária 19",
+      "arquivo": "adl-19-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-19-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 19,
+      "quadros": 250
+    },
+    {
+      "id": "adl-20",
+      "nome": "Atividade diária 20",
+      "arquivo": "adl-20-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-20-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 20,
+      "quadros": 270
+    },
+    {
+      "id": "adl-21",
+      "nome": "Atividade diária 21",
+      "arquivo": "adl-21-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-21-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 21,
+      "quadros": 280
+    },
+    {
+      "id": "adl-22",
+      "nome": "Atividade diária 22",
+      "arquivo": "adl-22-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-22-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 22,
+      "quadros": 240
+    },
+    {
+      "id": "adl-23",
+      "nome": "Atividade diária 23",
+      "arquivo": "adl-23-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-23-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 23,
+      "quadros": 220
+    },
+    {
+      "id": "adl-24",
+      "nome": "Atividade diária 24",
+      "arquivo": "adl-24-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-24-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 24,
+      "quadros": 70
+    },
+    {
+      "id": "adl-25",
+      "nome": "Atividade diária 25",
+      "arquivo": "adl-25-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-25-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 25,
+      "quadros": 110
+    },
+    {
+      "id": "adl-26",
+      "nome": "Atividade diária 26",
+      "arquivo": "adl-26-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-26-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 26,
+      "quadros": 95
+    },
+    {
+      "id": "adl-27",
+      "nome": "Atividade diária 27",
+      "arquivo": "adl-27-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-27-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 27,
+      "quadros": 100
+    },
+    {
+      "id": "adl-28",
+      "nome": "Atividade diária 28",
+      "arquivo": "adl-28-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-28-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 28,
+      "quadros": 85
+    },
+    {
+      "id": "adl-29",
+      "nome": "Atividade diária 29",
+      "arquivo": "adl-29-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-29-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 29,
+      "quadros": 125
     },
     {
       "id": "adl-30",
@@ -59,7 +607,100 @@
       "arquivo": "adl-30-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-30-cam0.mp4",
       "rotulo": "nao_queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 30,
+      "quadros": 400,
+      "destaque": 7
+    },
+    {
+      "id": "adl-31",
+      "nome": "Atividade diária 31",
+      "arquivo": "adl-31-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-31-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 31,
+      "quadros": 250
+    },
+    {
+      "id": "adl-32",
+      "nome": "Atividade diária 32",
+      "arquivo": "adl-32-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-32-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 32,
+      "quadros": 200
+    },
+    {
+      "id": "adl-33",
+      "nome": "Atividade diária 33",
+      "arquivo": "adl-33-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-33-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 33,
+      "quadros": 200
+    },
+    {
+      "id": "adl-34",
+      "nome": "Atividade diária 34",
+      "arquivo": "adl-34-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-34-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 34,
+      "quadros": 191
+    },
+    {
+      "id": "adl-35",
+      "nome": "Atividade diária 35",
+      "arquivo": "adl-35-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-35-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 35,
+      "quadros": 280
+    },
+    {
+      "id": "adl-36",
+      "nome": "Atividade diária 36",
+      "arquivo": "adl-36-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-36-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 36,
+      "quadros": 340
+    },
+    {
+      "id": "adl-37",
+      "nome": "Atividade diária 37",
+      "arquivo": "adl-37-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-37-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 37,
+      "quadros": 350
+    },
+    {
+      "id": "adl-38",
+      "nome": "Atividade diária 38",
+      "arquivo": "adl-38-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-38-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 38,
+      "quadros": 345
+    },
+    {
+      "id": "adl-39",
+      "nome": "Atividade diária 39",
+      "arquivo": "adl-39-cam0.mp4",
+      "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-39-cam0.mp4",
+      "rotulo": "nao_queda",
+      "recorte": "direita",
+      "indice": 39,
+      "quadros": 270
     },
     {
       "id": "adl-40",
@@ -67,7 +708,10 @@
       "arquivo": "adl-40-cam0.mp4",
       "url": "https://fenix.ur.edu.pl/mkepski/ds/data/adl-40-cam0.mp4",
       "rotulo": "nao_queda",
-      "recorte": "direita"
+      "recorte": "direita",
+      "indice": 40,
+      "quadros": 330,
+      "destaque": 8
     }
   ]
 }
