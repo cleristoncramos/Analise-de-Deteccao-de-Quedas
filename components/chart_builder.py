@@ -145,3 +145,37 @@ def criar_grafico_reducao_falsos_positivos(df_geral: pd.DataFrame):
         margin=dict(l=20, r=20, t=80, b=40)
     )
     return fig
+
+def criar_grafico_movimento(serie: Dict[str, Any], limiar_ar: float = 0.75, limiar_vel: float = 15.0,
+                            altura: int = 230):
+    """
+    Razão de aspecto e velocidade da pessoa principal ao longo dos quadros, com os limiares
+    da heurística e a marcação dos quadros em que a queda foi registrada.
+    """
+    from plotly.subplots import make_subplots
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.12,
+                        subplot_titles=("Razão de aspecto (h/w)", "Velocidade do centroide (px/f)"))
+    fig.add_trace(go.Scatter(x=serie["frame"], y=serie["ar"], mode="lines", line=dict(color="#1f3a5f", width=2),
+                             name="AR", hovertemplate="Quadro %{x}<br>AR %{y:.2f}<extra></extra>"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=serie["frame"], y=serie["v"], mode="lines", line=dict(color="#4f6d5a", width=2),
+                             name="v", hovertemplate="Quadro %{x}<br>v %{y:.1f} px/f<extra></extra>"), row=2, col=1)
+    fig.add_hline(y=limiar_ar, line_dash="dash", line_color="#7b2d26", line_width=1, row=1, col=1,
+                  annotation_text=f"deitado < {limiar_ar:g}", annotation_font_size=10)
+    fig.add_hline(y=limiar_vel, line_dash="dash", line_color="#7b2d26", line_width=1, row=2, col=1,
+                  annotation_text=f"queda ≥ {limiar_vel:g}", annotation_font_size=10)
+    for quadro in serie.get("quedas", []):
+        fig.add_vline(x=quadro, line_color="#7b2d26", line_width=2, opacity=0.6)
+    fig.update_layout(
+        height=altura,
+        margin=dict(l=10, r=10, t=28, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#1d1d1b", size=11),
+        showlegend=False,
+    )
+    fig.update_annotations(font_size=11)
+    fig.update_yaxes(gridcolor="rgba(29,29,27,0.12)", zeroline=False)
+    fig.update_xaxes(gridcolor="rgba(29,29,27,0.08)")
+    fig.update_xaxes(title_text="quadro", title_font_size=10, row=2, col=1)
+    return fig

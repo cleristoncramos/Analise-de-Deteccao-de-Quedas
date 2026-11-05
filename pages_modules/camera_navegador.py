@@ -26,6 +26,7 @@ from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.yolo_engine import processar_frame_detector, reiniciar_rastreamento
 
 FPS_REFERENCIA = 30.0
+LARGURA_RETORNO = 640  # largura de cada imagem devolvida ao navegador
 TRADUCOES = {
     "start": "Ligar câmera",
     "stop": "Desligar câmera",
@@ -175,4 +176,10 @@ class ProcessadorCamera(VideoProcessorBase):
                 self.ultima_queda_frame = self.numero_frame
 
         saida = cv2.hconcat(quadros) if len(quadros) > 1 else quadros[0]
+        # A análise roda na resolução da metodologia, mas o quadro devolvido ao navegador é reduzido:
+        # codificar e enviar imagens grandes era a principal causa das travadas na câmera ao vivo
+        altura, largura = saida.shape[:2]
+        limite = LARGURA_RETORNO * len(quadros)
+        if largura > limite:
+            saida = cv2.resize(saida, (limite, round(altura * limite / largura)), interpolation=cv2.INTER_AREA)
         return av.VideoFrame.from_ndarray(saida, format="bgr24")

@@ -169,7 +169,7 @@ Os valores numéricos de todas as tabelas estão em [`data/tcc_benchmark_data.js
 
 ### 4.7 Amostras do UR Fall no aplicativo
 
-O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do UR Fall Detection Dataset (quatro quedas e quatro atividades de vida diária, em três ambientes), com a URL de origem e o rótulo esperado de cada um. Os vídeos não são versionados: ao escolher **Amostra Pré-Carregada** no Estúdio de Inferência, o aplicativo baixa o arquivo do site do dataset e o guarda em cache local (`core/catalogo_videos.py`), reaproveitando-o nas próximas execuções.
+O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do UR Fall Detection Dataset (quatro quedas e quatro atividades de vida diária, em três ambientes), com a URL de origem e o rótulo esperado de cada um. As amostras foram escolhidas entre as que o modo Bimodal com o YOLOv11s classifica corretamente, para que a demonstração mostre a ferramenta funcionando; no modo Estático, a Atividade 10 (deitar-se) gera um falso positivo, o que ilustra o papel do limitador de velocidade. Isso não representa a taxa de acerto geral do sistema, que está na [seção 5](#5-resultados). Os vídeos não são versionados: ao escolher **Amostra Pré-Carregada** no Estúdio de Inferência, o aplicativo baixa o arquivo do site do dataset e o guarda em cache local (`core/catalogo_videos.py`), reaproveitando-o nas próximas execuções.
 
 - **Câmera e recorte.** São usados os vídeos da câmera 0, paralela ao chão. Cada arquivo traz a profundidade (metade esquerda) e a imagem colorida (metade direita) lado a lado; a análise usa apenas a metade colorida.
 - **Gabarito.** Ao fim da análise de uma amostra, o aplicativo compara o resultado de cada modo com o rótulo esperado e o classifica como verdadeiro positivo, verdadeiro negativo, falso positivo ou falso negativo.
@@ -261,24 +261,26 @@ O arquivo [`videos/catalogo.json`](videos/catalogo.json) lista oito vídeos do U
 │   ├── aceleracao.py           # Exportação do YOLOv11 para OpenVINO (inferência mais rápida na CPU)
 │   ├── video_saida.py          # Gravação do vídeo anotado em MP4 H.264
 │   ├── cache_resultados.py     # Cache dos resultados das amostras do catálogo
-│   └── horario.py              # Horário local no fuso America/Fortaleza (UTC-3)
+│   ├── horario.py              # Horário local no fuso America/Fortaleza (UTC-3)
+│   ├── fonte_link.py           # Vídeo por link: YouTube (yt-dlp), arquivo na web e transmissões HLS/RTSP/RTMP
+│   └── serie_movimento.py      # Série de razão de aspecto e velocidade da pessoa principal (gráfico do Estúdio)
 ├── pages_modules/              # Páginas da interface
 │   ├── pagina_inicial.py       # Página inicial (apresentação, vídeo de demonstração, tutorial)
 │   ├── informacoes_academicas.py
 │   ├── visao_geral.py          # Resumo do trabalho, heurística e bases de dados
-│   ├── estudio_inferencia.py   # Execução sobre vídeo, amostra ou câmera, nos modos Bimodal, Estático e A/B
+│   ├── estudio_inferencia.py   # Estúdio em tela única: fontes de vídeo, análise, vídeo anotado, gráfico e gabarito
 │   ├── camera_navegador.py     # Processamento ao vivo da câmera do navegador (WebRTC)
-│   ├── dashboard_metricas.py   # Tabelas 1 a 4, matrizes de confusão e gráficos comparativos
 │   ├── auditoria_logs.py       # Log de ocorrências e exportação em CSV, Excel e PDF
-│   ├── laboratorio_experimental.py  # Simulações do eixo Z e da velocidade normalizada
-│   └── navegacao.py            # Controle da tela ativa (página inicial, acadêmica ou sistema)
+│   ├── constantes.py           # Rótulos do menu, das fontes e dos modos compartilhados entre as páginas
+│   └── navegacao.py            # Controle da tela ativa e atalho do Get Started para o Estúdio
 ├── components/                 # Gráficos Plotly e cartões reutilizáveis
 ├── data/tcc_benchmark_data.json  # Métricas do artigo (fonte única para interface e testes)
 ├── videos/catalogo.json        # Amostras do UR Fall (URL e rótulo esperado); os .mp4 não são versionados
 ├── assets/                     # Estilos, logotipos institucionais e vídeo de demonstração
 ├── tools/gerar_video_demo.py   # Gera o vídeo de demonstração da página inicial
 ├── tests/                      # Testes automatizados (pytest)
-├── legado/                     # Primeira versão (Google Colab) e scripts originais dos experimentos
+├── legado/                     # Primeira versão (Google Colab), scripts originais dos experimentos e, em
+│                               # legado/interface/, o Dashboard Científico e o Laboratório Experimental, fora da demo
 ├── Template_SBC/               # Modelo de artigo da Sociedade Brasileira de Computação
 ├── .streamlit/                 # Tema da interface e modelo de Secrets
 ├── requirements.txt            # Dependências da aplicação
@@ -412,17 +414,19 @@ Os horários exibidos e gravados pelo sistema (ocorrências, relatórios e CSV d
 
 ## 9. Uso da aplicação web
 
+A demo foi organizada para mostrar a ferramenta funcionando; os resultados completos do artigo ficam neste README ([seção 5](#5-resultados)).
+
 | Tela | Conteúdo |
 |---|---|
-| **Página inicial** | apresentação do projeto, vídeo de demonstração da heurística, indicadores do artigo, tutorial em quatro etapas e primeiros passos |
+| **Página inicial** | apresentação do projeto, vídeo de demonstração da heurística, recursos da ferramenta, tutorial em quatro etapas e primeiros passos. O botão **Get Started** abre o Estúdio já com a amostra "Queda 01" no modo A/B, pronta para rodar com um clique |
 | **Informações Acadêmicas** | identificação do trabalho, instituição, curso, autoria, orientação, tecnologias e bases de dados |
-| **Visão Geral e Artigo** | contexto, heurística bimodal com fórmulas, bases de dados e principais conclusões |
-| **Estúdio de Inferência** | execução sobre upload, amostras do UR Fall baixadas na hora (com comparação ao gabarito) ou vídeos da pasta `videos/`, câmera do navegador ou webcam local; modos Bimodal, Estático e Comparativo A/B; calibração de confiança, limiares de AR, velocidade e proximidade, resolução, normalização por FPS e carência de eventos |
-| **Dashboard Científico** | Tabelas 1 a 4, explorador de matrizes de confusão, gráfico de radar por modelo e comparação de falsos positivos |
+| **Estúdio de Inferência** | tela única: à esquerda, a fonte do vídeo, os botões, a telemetria e o gabarito; à direita, a prévia e depois o vídeo anotado em velocidade real, com o gráfico de razão de aspecto e velocidade da pessoa principal (limiares e quedas marcados). Fontes: amostras do UR Fall com gabarito, upload, link (YouTube, arquivo na web ou transmissão HLS/RTSP/RTMP), câmera do navegador e webcam local. Modos Bimodal, Estático e Comparativo A/B, com calibração dos limiares na barra lateral |
 | **Auditoria e Logs** | tabela de ocorrências da sessão, com filtros e exportação em CSV, Excel e relatório técnico em PDF |
-| **Laboratório Experimental** | simulador da perda de escala no eixo Z e da velocidade normalizada $v_{norm} = \frac{v}{\sqrt{w \cdot h}} \times 100$, com limiar de 12%, e discussão da transição para estimativa de pose |
+| **Sobre a pesquisa** | contexto, heurística bimodal com fórmulas e bases de dados |
 
-O ícone da casa na barra lateral retorna à página inicial.
+O ícone da casa na barra lateral retorna à página inicial. O Dashboard Científico e o Laboratório Experimental (trabalhos futuros) saíram do menu da demo; o código continua em `legado/interface/`.
+
+**Link de vídeo ou transmissão.** Links do YouTube (até 3 minutos) são baixados com o `yt-dlp`, só a trilha de vídeo; links diretos de arquivo e transmissões ao vivo (OBS, VLC, câmeras IP) são lidos pelo OpenCV quadro a quadro, até o clique em **Parar** ou o limite de quadros (900 no Streamlit Cloud; 1.800 localmente para links). O YouTube costuma bloquear downloads vindos de servidores na nuvem; nesse caso, o app sugere baixar o vídeo e usar o upload.
 
 ## 10. Câmera do navegador e servidor TURN
 
@@ -457,6 +461,7 @@ ruff check .
 | `tests/test_video_processor.py` | redimensionamento com proporção, eventos com IDs e disparo no modo estático |
 | `tests/test_benchmark_data.py` | consistência das métricas publicadas com as matrizes de confusão e da Tabela 4 com a soma das Tabelas 1 a 3 |
 | `tests/test_ice_servers.py` | montagem da configuração STUN/TURN a partir de Secrets simulados |
+| `tests/test_fonte_link_serie.py` | validação de links, YouTube simulado (inclusive bloqueio), série de movimento e gráfico do Estúdio |
 | `tests/test_cache_e_video.py` | cache de resultados das amostras e gravação do vídeo anotado em MP4 H.264 |
 | `tests/test_horario_ambiente.py` | fuso America/Fortaleza (UTC-3) e padrões do modo leve no Streamlit Cloud |
 | `tests/test_catalogo_videos.py` | catálogo do UR Fall, cache e download simulado sem rede, recorte da metade RGB e classificação VP/VN/FP/FN |
@@ -473,7 +478,7 @@ O workflow [`.github/workflows/testes.yml`](.github/workflows/testes.yml) execut
 
 ## 13. Trabalhos futuros
 
-- **Normalização de escala.** Dividir a velocidade pela dimensão da caixa ($v_{norm}$), tornando o limiar independente da distância à câmera, conforme prototipado no Laboratório Experimental.
+- **Normalização de escala.** Dividir a velocidade pela dimensão da caixa ($v_{norm}$), tornando o limiar independente da distância à câmera, conforme prototipado no Laboratório Experimental (`legado/interface/`).
 - **Estimativa de pose.** Substituir a razão de aspecto por pontos-chave do corpo (YOLO11-Pose), o que permite medir a inclinação do tronco e reduz a dependência da geometria da caixa, especialmente em quedas no eixo Z.
 - **Bases maiores e reais.** Ampliar a base de vídeos públicos e, com as devidas autorizações éticas, validar o sistema em ambiente escolar real.
 - **Uniformização da avaliação.** Resolver as pendências de contagem descritas na [seção 6](#6-discussão-e-limitações), para que os dois cenários sejam comparados sobre o mesmo conjunto de eventos.

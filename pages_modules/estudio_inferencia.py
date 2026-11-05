@@ -8,6 +8,9 @@ import cv2
 import streamlit as st
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
+from components.chart_builder import criar_grafico_movimento
+from core.ambiente import MODELOS_PESADOS, padroes_execucao
+from core.cache_resultados import carregar_resultado, chave_resultado, salvar_resultado
 from core.catalogo_videos import (
     ROTULOS,
     ErroDownloadVideo,
@@ -16,28 +19,38 @@ from core.catalogo_videos import (
     obter_video,
     recortar_quadro,
 )
-from core.ambiente import MODELOS_PESADOS, padroes_execucao
-from core.cache_resultados import carregar_resultado, chave_resultado, salvar_resultado
 from core.eventos import AgrupadorEventos, chave_evento
+from core.fonte_link import ErroLink, baixar_youtube, eh_youtube, validar_link
 from core.heuristics import analisar_interacoes
 from core.horario import hora_local
+from core.serie_movimento import SerieMovimento
 from core.tracker import PersonTracker
 from core.video_processor import desenhar_anotacoes, redimensionar_frame
 from core.video_saida import criar_gravador
 from core.yolo_engine import MODELOS_TCC, carregar_modelo, processar_frame_detector, reiniciar_rastreamento
 from pages_modules.camera_navegador import TRADUCOES, ParametrosAnalise, ProcessadorCamera, obter_configuracao_rtc
-
-MODO_COM = "Bimodal (Com Velocidade - Proposta)"
-MODO_SEM = "Estático (Sem Velocidade - Linha de Base)"
-MODO_AB = "Comparativo Lado a Lado (A/B: Sem vs Com Velocidade)"
-
-FONTE_UPLOAD = "Upload de Arquivo de Vídeo"
-FONTE_AMOSTRA = "Amostra Pré-Carregada"
-FONTE_NAVEGADOR = "Câmera do Navegador"
-FONTE_SERVIDOR = "Webcam do Servidor (uso local)"
+from pages_modules.constantes import (
+    CHAVE_AMOSTRA_PADRAO,
+    CHAVE_FONTE,
+    CHAVE_MODO,
+    FONTE_AMOSTRA,
+    FONTE_LINK,
+    FONTE_NAVEGADOR,
+    FONTE_SERVIDOR,
+    FONTE_UPLOAD,
+    MODO_AB,
+    MODO_COM,
+    MODO_SEM,
+)
 
 # Muda quando a lógica da análise muda, para não reaproveitar resultados antigos do cache
-VERSAO_ANALISE = 1
+VERSAO_ANALISE = 2
+# Links e transmissões sem limite de quadros do modo leve param neste ponto (1 minuto a 30 FPS)
+LIMITE_QUADROS_LINK = 1800
+DURACAO_MAX_YOUTUBE_S = 180
+
+TAXA_DE_ACERTO = ("No artigo (79 eventos), o YOLOv11s com velocidade teve precisão de 75,8% e revocação de 57,8%; "
+                  "no UR Fall, 100% de precisão. O sistema pode errar, sobretudo em quedas na direção da câmera.")
 
 
 def obter_modelo_da_sessao(model_name: str, acelerar: bool = False):
@@ -77,7 +90,7 @@ def salvar_upload_temporario(arquivo_upload) -> str:
 
 
 def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotulo, modelo_selecionado,
-                      coletor=None) -> int:
+                      coletor=None, serie=None) -> int:
     """Adiciona ao histórico os eventos novos (agrupados por pessoa/dupla) e retorna quantas quedas entraram."""
     quedas = 0
     for ev in eventos:
@@ -86,6 +99,8 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
             continue
         if ev["tipo"] == "QUEDA":
             quedas += 1
+            if serie is not None:
+                serie.registrar_queda(numero_frame, ev.get("id"))
         linha = {
             "Frame": numero_frame,
             "Timestamp": hora_local(),
@@ -101,6 +116,18 @@ def registrar_eventos(eventos, agrupador, numero_frame, rotulo_modo, origem_rotu
         if coletor is not None:
             coletor.append(linha)
     return quedas
+
+
+def painel_metricas(area, ritmo, pessoas, quedas_texto):
+    """Telemetria compacta numa linha, para caber na coluna de controles sem rolar a tela."""
+    area.markdown(
+        f'<div class="estudio-metricas"><div><b>{ritmo:.1f}</b><span>quadros/s</span></div>'
+        f'<div><b>{pessoas}</b><span>pessoas</span></div><div><b>{quedas_texto}</b><span>quedas</span></div></div>',
+        unsafe_allow_html=True)
+
+
+def status_ok(area, texto):
+    area.markdown(f'<div class="estudio-status">{texto}</div>', unsafe_allow_html=True)
 
 
 RESULTADO_GABARITO = {
@@ -133,12 +160,20 @@ def escolher_amostra():
         st.warning("Nenhuma amostra disponível. Faça o upload de um arquivo ou use a câmera do navegador.")
         return None, "Vídeo", None
 
-    escolha = st.selectbox("Escolha uma amostra:", list(opcoes))
+    rotulos = list(opcoes)
+    padrao = st.session_state.pop(CHAVE_AMOSTRA_PADRAO, None)  # definido pelo Get Started da página inicial
+    if padrao:
+        for rotulo, item in opcoes.items():
+            if isinstance(item, dict) and item["id"] == padrao:
+                st.session_state["amostra_escolhida"] = rotulo
+    escolha = st.selectbox("Amostra", rotulos, key="amostra_escolhida")
     item = opcoes[escolha]
     if catalogo.get("citacao"):
-        st.caption(f"Amostras do UR Fall Detection Dataset, usadas para fins acadêmicos não comerciais conforme "
-                   f"a licença do conjunto ({catalogo.get('licenca', 'CC BY-NC-SA 4.0')}). Fonte: "
-                   f"{catalogo['citacao']} Disponível em: {catalogo.get('pagina', '')}.")
+        with st.expander("Sobre as amostras", expanded=False):
+            st.caption(f"Vídeos do UR Fall Detection Dataset, usados para fins acadêmicos não comerciais conforme a "
+                       f"licença do conjunto ({catalogo.get('licenca', 'CC BY-NC-SA 4.0')}). Fonte: "
+                       f"{catalogo['citacao']} Disponível em: {catalogo.get('pagina', '')}. Cada vídeo traz a "
+                       "profundidade e a imagem colorida lado a lado; a análise usa só a imagem colorida.")
 
     if isinstance(item, str):
         return item, os.path.basename(item), None
@@ -150,77 +185,100 @@ def escolher_amostra():
         st.warning(f"{exc} O site do UR Fall Detection Dataset pode estar fora do ar no momento. "
                    "Tente de novo mais tarde ou use a opção **Upload de Arquivo de Vídeo** com um vídeo próprio.")
         return None, item["nome"], None
-    if item.get("recorte"):
-        st.caption("Este vídeo traz a profundidade e a imagem colorida lado a lado; a análise usa só a imagem colorida.")
     return str(caminho), item["nome"], item
+
+
+def preparar_link(url: str, padroes):
+    """Valida o link e, se for do YouTube, baixa o vídeo. Retorna (fonte para o OpenCV, rótulo) ou levanta ErroLink."""
+    url = validar_link(url)
+    if not eh_youtube(url):
+        return url, url
+    limite = DURACAO_MAX_YOUTUBE_S
+    anterior = st.session_state.get("youtube_baixado")
+    if anterior and anterior["url"] == url and os.path.isfile(anterior["caminho"]):
+        return anterior["caminho"], url
+    if anterior:
+        shutil.rmtree(anterior["pasta"], ignore_errors=True)
+    pasta = tempfile.mkdtemp(prefix="dq_youtube_")
+    with st.spinner("Baixando o vídeo do YouTube..."):
+        caminho = baixar_youtube(url, Path(pasta), max_duracao_s=limite)
+    st.session_state.youtube_baixado = {"url": url, "caminho": str(caminho), "pasta": pasta}
+    return str(caminho), url
 
 
 def mostrar_gabarito(item: dict, resultados):
     """Compara o resultado de cada modo com o rótulo esperado da amostra do catálogo."""
-    st.subheader("Comparação com o gabarito")
     esperado = ROTULOS[item["rotulo"]]
-    colunas = st.columns(len(resultados))
-    for coluna, (modo, quedas) in zip(colunas, resultados):
+    linhas = []
+    for modo, quedas in resultados:
         sigla = avaliar_resultado(item["rotulo"], quedas > 0)
         nome, explicacao = RESULTADO_GABARITO[sigla]
-        sistema = f"{quedas} queda(s) registrada(s)" if quedas else "nenhuma queda registrada"
-        texto = (f"**{modo}**  \nEsperado: **{esperado}**  \nSistema: **{sistema}**  \n"
-                 f"Resultado: **{sigla} · {nome}** ({explicacao})")
-        with coluna:
-            (st.success if sigla in ("VP", "VN") else st.error)(texto)
+        sistema = f"{quedas} queda(s)" if quedas else "nenhuma queda"
+        classe = "acerto" if sigla in ("VP", "VN") else "erro"
+        linhas.append(f'<div class="gabarito-linha {classe}"><span class="modo">{modo}</span>'
+                      f'<span>{sistema}</span><span class="sigla" title="{nome}: {explicacao}">{sigla}</span></div>')
+    st.markdown(f'<div class="gabarito"><div class="gabarito-titulo">Gabarito · esperado: <b>{esperado}</b></div>'
+                f'{"".join(linhas)}</div>', unsafe_allow_html=True)
 
 
-def mostrar_resultado(dados: dict, video, amostra, modo_execucao: str, area_video=None):
-    """Exibe o vídeo anotado em velocidade real e, para amostras do catálogo, a comparação com o gabarito.
+def mostrar_grafico(area, serie, limiar_ar, limiar_vel, chave="grafico_final"):
+    # Cada redesenho no mesmo espaço precisa de uma chave própria, senão o Streamlit acusa elemento duplicado
+    if serie and serie.get("frame"):
+        area.plotly_chart(criar_grafico_movimento(serie, limiar_ar, limiar_vel), width="stretch",
+                          config={"displayModeBar": False}, key=chave)
 
-    `area_video` é o espaço da prévia: o vídeo ocupa o mesmo lugar, sem repetir a imagem do último quadro.
-    """
+
+def mostrar_resultado(dados: dict, video, amostra, modo_execucao: str, area_video, area_grafico, area_resultado,
+                      limiar_ar: float, limiar_vel: float):
+    """Exibe o vídeo anotado em velocidade real, o gráfico de movimento e, para amostras, o gabarito."""
     if video:
-        with (area_video.container() if area_video is not None else st.container()):
+        with area_video.container():
             st.video(Path(video).read_bytes(), format="video/mp4")
-            st.caption("Vídeo anotado em velocidade real, na taxa de quadros do vídeo original, com as caixas, a "
-                       "postura e os alertas da análise.")
+            st.caption("Vídeo anotado em velocidade real, com as caixas, a postura e os alertas da análise.")
+    mostrar_grafico(area_grafico, dados.get("serie"), limiar_ar, limiar_vel)
     if dados.get("concluido") and amostra:
         resultados = []
         if modo_execucao in (MODO_SEM, MODO_AB):
-            resultados.append(("Sem Velocidade (linha de base)", dados["quedas_sem"]))
+            resultados.append(("Sem velocidade", dados["quedas_sem"]))
         if modo_execucao in (MODO_COM, MODO_AB):
-            resultados.append(("Com Velocidade (proposta)", dados["quedas_com"]))
-        mostrar_gabarito(amostra, resultados)
+            resultados.append(("Com velocidade", dados["quedas_com"]))
+        with area_resultado.container():
+            mostrar_gabarito(amostra, resultados)
 
 
-def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
+def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str, col_controles, col_video):
     """Análise ao vivo da câmera de quem acessa a página, via WebRTC."""
     configuracao_rtc, com_turn, erro_turn = obter_configuracao_rtc()
-    if com_turn:
-        st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. A conexão usa um servidor TURN "
-                   "para atravessar firewalls e redes com NAT.")
-    else:
-        st.caption("Ao ligar a câmera, o navegador pedirá permissão de acesso. Sem servidor TURN configurado, "
-                   "a conexão só funciona em redes abertas (como na execução local); no app publicado é preciso "
-                   "configurar o TURN nos Secrets (veja o README).")
-    if erro_turn:
-        st.caption(f"Não foi possível obter as credenciais TURN ({erro_turn}); usando apenas STUN.")
+    with col_controles:
+        if com_turn:
+            st.caption("O navegador pedirá permissão de câmera. A conexão usa um servidor TURN para atravessar "
+                       "firewalls e redes com NAT.")
+        else:
+            st.caption("O navegador pedirá permissão de câmera. Sem servidor TURN configurado, a conexão só funciona "
+                       "em redes abertas (como na execução local); veja o README.")
+        if erro_turn:
+            st.caption(f"Não foi possível obter as credenciais TURN ({erro_turn}); usando apenas STUN.")
+        area_metricas = st.empty()
+        alerta = st.empty()
+        tabela = st.empty()
 
     with st.spinner("Carregando o modelo..."):
         modelo = obter_modelo_da_sessao(parametros.modelo, padroes_execucao().usar_openvino)
 
-    ctx = webrtc_streamer(
-        key=f"camera_navegador_{parametros.modelo}",
-        mode=WebRtcMode.SENDRECV,
-        rtc_configuration=configuracao_rtc,
-        media_stream_constraints={"video": True, "audio": False},
-        video_processor_factory=lambda: ProcessadorCamera(modelo, parametros),
-        async_processing=True,
-        translations=TRADUCOES,
-    )
-    if modo_execucao == MODO_AB:
-        st.caption("Imagem da esquerda: sem velocidade (linha de base). Direita: com velocidade (proposta).")
-
-    col1, col2, col3 = st.columns(3)
-    m_fps, m_pessoas, m_quedas = col1.empty(), col2.empty(), col3.empty()
-    alerta = st.empty()
-    tabela = st.empty()
+    with col_video:
+        ctx = webrtc_streamer(
+            key=f"camera_navegador_{parametros.modelo}",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=configuracao_rtc,
+            # Resolução e taxa moderadas: menos quadros para decodificar e reenviar ao navegador
+            media_stream_constraints={"video": {"width": {"ideal": 640}, "height": {"ideal": 480},
+                                                "frameRate": {"ideal": 15, "max": 20}}, "audio": False},
+            video_processor_factory=lambda: ProcessadorCamera(modelo, parametros),
+            async_processing=True,
+            translations=TRADUCOES,
+        )
+        if modo_execucao == MODO_AB:
+            st.caption("Esquerda: sem velocidade (linha de base). Direita: com velocidade (proposta).")
 
     while ctx.state.playing:
         processador = ctx.video_processor
@@ -229,37 +287,30 @@ def render_camera_navegador(parametros: ParametrosAnalise, modo_execucao: str):
             while not processador.eventos.empty():
                 st.session_state.historico_eventos.append(processador.eventos.get_nowait())
             m = processador.metricas()
-            m_fps.metric("FPS", f"{m['fps']:.1f}")
-            m_pessoas.metric("Pessoas em Cena", m["pessoas"])
             if modo_execucao == MODO_AB:
-                m_quedas.metric("Quedas (Com / Sem Vel.)", f"{m['quedas_com']} / {m['quedas_sem']}")
+                texto = f"{m['quedas_com']} / {m['quedas_sem']}"
             else:
-                m_quedas.metric("Quedas Registradas",
-                                m["quedas_com"] if parametros.executar_com else m["quedas_sem"])
+                texto = str(m["quedas_com"] if parametros.executar_com else m["quedas_sem"])
+            painel_metricas(area_metricas, m["fps"], m["pessoas"], texto)
             if m["ultima_queda_frame"] is not None and m["frame"] - m["ultima_queda_frame"] < 60:
-                alerta.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {m['ultima_queda_frame']}!**")
+                alerta.error(f"**ALERTA DE QUEDA NO QUADRO {m['ultima_queda_frame']}!**")
             else:
                 alerta.empty()
             recentes = [e for e in st.session_state.historico_eventos if e["Fonte"] == "Câmera do navegador"]
             if recentes:
-                tabela.dataframe(recentes[-8:][::-1], width="stretch", hide_index=True)
+                tabela.dataframe(recentes[-5:][::-1], width="stretch", hide_index=True,
+                                 column_order=("Timestamp", "Tipo", "Detalhes", "Modo"))
         time.sleep(0.5)
 
 
-def render_estudio_inferencia():
-    st.title("Estúdio de Inferência e Detecção")
-    st.caption("Bancada de testes interativa para execução dos modelos YOLOv11 com análise cinemática e postural")
-
-    # Barra lateral de configurações
+def _parametros_barra_lateral(padroes):
     st.sidebar.header("Parâmetros de Inferência")
-
     modelo_selecionado = st.sidebar.selectbox(
         "Modelo YOLOv11",
         list(MODELOS_TCC.keys()),
         index=1,  # Default YOLOv11s (o sweet spot apontado no artigo)
         help="Selecione a variante da arquitetura YOLOv11."
     )
-    padroes = padroes_execucao()
     if padroes.modo_leve and any(m in modelo_selecionado for m in MODELOS_PESADOS):
         st.sidebar.markdown(
             '<div class="aviso-discreto" lang="pt-BR">Modelos grandes (L e X) usam muita CPU e podem fazer a '
@@ -267,21 +318,23 @@ def render_estudio_inferencia():
             unsafe_allow_html=True,
         )
 
+    if st.session_state.get(CHAVE_MODO) not in (MODO_COM, MODO_SEM, MODO_AB):
+        st.session_state[CHAVE_MODO] = MODO_COM
     modo_execucao = st.sidebar.radio(
         "Modo de Análise",
         [MODO_COM, MODO_SEM, MODO_AB],
-        index=0,
+        key=CHAVE_MODO,
         help="Compare a filtragem de falsos positivos da heurística cinemática contra o modelo estático."
     )
 
     with st.sidebar.expander("Calibração de Limiares Heurísticos", expanded=False):
         conf_min = st.slider("Confiança Mínima YOLO", 0.1, 0.9, 0.5, 0.05)
         limiar_ar = st.slider("Limiar de Razão de Aspecto (AR Queda)", 0.5, 1.0, 0.75, 0.05,
-                             help="Valores abaixo deste limiar caracterizam o corpo na horizontal (Deitado).")
+                              help="Valores abaixo deste limiar caracterizam o corpo na horizontal (Deitado).")
         limiar_vel = st.slider("Limiar de Velocidade de Queda (px/f)", 5.0, 40.0, 15.0, 1.0,
-                              help="Velocidade mínima do centroide para confirmar a transição brusca de queda.")
+                               help="Velocidade mínima do centroide para confirmar a transição brusca de queda.")
         limiar_prox = st.slider("Distância de Proximidade (px)", 20, 150, 60, 5,
-                               help="Distância euclidiana máxima entre centroides para disparar alerta de aglomeração.")
+                                help="Distância euclidiana máxima entre centroides para disparar alerta de aglomeração.")
         resolucao_alvo = st.select_slider(
             "Resolução de Processamento",
             options=[480, 720, 1080],
@@ -305,17 +358,45 @@ def render_estudio_inferencia():
         )
         if pular_quadros > 1:
             st.warning("Pulando quadros, o resultado pode diferir da metodologia do TCC.")
+    return (modelo_selecionado, modo_execucao, conf_min, limiar_ar, limiar_vel, limiar_prox, resolucao_alvo,
+            corrigir_fps, carencia_s, pular_quadros)
 
-    # Seleção da fonte de vídeo
-    tipo_fonte = st.radio(
-        "Fonte de Entrada",
-        [FONTE_UPLOAD, FONTE_AMOSTRA, FONTE_NAVEGADOR, FONTE_SERVIDOR],
-        horizontal=True
+
+def _dica_modo_leve(padroes):
+    texto = ("<b>Versão publicada (Streamlit Cloud gratuito).</b> Para não sobrecarregar o servidor, a análise usa "
+             f"um modo leve, com até {padroes.max_quadros} quadros por vídeo e imagens menores na tela. Se a "
+             "análise ficar lenta ou aparecer o aviso em inglês <i>Your app has been throttled</i>, é a plataforma "
+             "reduzindo a CPU do app por alguns minutos por causa do uso intenso; o app continua funcionando e o "
+             "aviso some sozinho. Modelos menores (v11n, v11s) evitam o problema.")
+    st.markdown(
+        '<div class="info-tooltip-linha"><span class="info-tooltip" tabindex="0" role="button" '
+        'aria-label="Sobre o modo leve da versão publicada" aria-describedby="dica-modo-leve">'
+        '<span class="info-tooltip-icone" aria-hidden="true">info</span>Modo leve'
+        f'<span class="info-tooltip-texto" role="tooltip" id="dica-modo-leve" lang="pt-BR">{texto}</span></span></div>',
+        unsafe_allow_html=True,
     )
 
-    # Inicialização do histórico de eventos na sessão
+
+def render_estudio_inferencia():
+    st.markdown('<div class="estudio-cabecalho"><span class="titulo">Estúdio de Inferência</span>'
+                '<span class="sub">Detecção de quedas com YOLOv11 e heurística de postura e velocidade</span></div>',
+                unsafe_allow_html=True)
+
+    padroes = padroes_execucao()
+    (modelo_selecionado, modo_execucao, conf_min, limiar_ar, limiar_vel, limiar_prox, resolucao_alvo,
+     corrigir_fps, carencia_s, pular_quadros) = _parametros_barra_lateral(padroes)
+
     if "historico_eventos" not in st.session_state:
         st.session_state.historico_eventos = []
+
+    # Tela única: controles e resultado à esquerda, vídeo e gráfico à direita
+    col_controles, col_video = st.columns([1, 1.55], gap="large")
+
+    with col_controles:
+        fontes = [FONTE_AMOSTRA, FONTE_UPLOAD, FONTE_LINK, FONTE_NAVEGADOR, FONTE_SERVIDOR]
+        if st.session_state.get(CHAVE_FONTE) not in fontes:
+            st.session_state[CHAVE_FONTE] = FONTE_AMOSTRA
+        tipo_fonte = st.selectbox("Fonte de entrada", fontes, key=CHAVE_FONTE)
 
     if tipo_fonte == FONTE_NAVEGADOR:
         render_camera_navegador(ParametrosAnalise(
@@ -324,66 +405,89 @@ def render_estudio_inferencia():
             conf_min=conf_min, limiar_ar=limiar_ar, limiar_vel=limiar_vel, limiar_prox=limiar_prox,
             resolucao_alvo=resolucao_alvo, corrigir_fps=corrigir_fps, carencia_s=carencia_s,
             modelo=modelo_selecionado,
-        ), modo_execucao)
+        ), modo_execucao, col_controles, col_video)
         return
 
     caminho_video = None
     origem_rotulo = "Vídeo"
     amostra_catalogo = None
+    url_link = ""
 
-    if tipo_fonte == FONTE_UPLOAD:
-        arquivo_upload = st.file_uploader("Selecione um vídeo (.mp4, .avi, .mov)", type=["mp4", "avi", "mov"])
-        if arquivo_upload is not None:
-            caminho_video = salvar_upload_temporario(arquivo_upload)
-            origem_rotulo = arquivo_upload.name
+    with col_controles:
+        if tipo_fonte == FONTE_UPLOAD:
+            arquivo_upload = st.file_uploader("Vídeo (.mp4, .avi, .mov)", type=["mp4", "avi", "mov"])
+            if arquivo_upload is not None:
+                caminho_video = salvar_upload_temporario(arquivo_upload)
+                origem_rotulo = arquivo_upload.name
+        elif tipo_fonte == FONTE_AMOSTRA:
+            caminho_video, origem_rotulo, amostra_catalogo = escolher_amostra()
+        elif tipo_fonte == FONTE_LINK:
+            url_link = st.text_input(
+                "Endereço do vídeo ou da transmissão", placeholder="https://… (YouTube, MP4, HLS) ou rtsp://…",
+                help="Aceita links do YouTube (até 3 minutos), arquivos de vídeo na web e transmissões HLS, RTSP ou "
+                     "RTMP, como as do OBS, do VLC ou de câmeras IP. Transmissões ao vivo são analisadas até você "
+                     "clicar em Parar ou até o limite de quadros.")
+            origem_rotulo = "Link"
+        elif tipo_fonte == FONTE_SERVIDOR:
+            st.caption("Usa a câmera do computador que executa o Streamlit. Serve apenas quando o sistema roda na "
+                       "sua própria máquina; na versão publicada, use a Câmera do Navegador.")
+            caminho_video = 0
+            origem_rotulo = "Webcam do servidor"
 
-    elif tipo_fonte == FONTE_AMOSTRA:
-        caminho_video, origem_rotulo, amostra_catalogo = escolher_amostra()
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            btn_iniciar = st.button("Iniciar Análise", type="primary", icon=":material/play_arrow:", width="stretch")
+        with col_btn2:
+            # Qualquer clique reexecuta o script e interrompe o laço em andamento
+            st.button("Parar", icon=":material/stop:", width="stretch")
 
-    elif tipo_fonte == FONTE_SERVIDOR:
-        st.caption("Usa a câmera do computador que executa o Streamlit. Serve apenas quando o sistema roda na "
-                   "sua própria máquina; na versão publicada, use a Câmera do Navegador.")
-        caminho_video = 0
-        origem_rotulo = "Webcam do servidor"
+        area_status = st.empty()
+        barra = st.empty()
+        area_metricas = st.empty()
+        alert_placeholder = st.empty()
+        area_resultado = st.empty()
 
-    if padroes.modo_leve:
-        texto = ("<b>Versão publicada (Streamlit Cloud gratuito).</b> Para não sobrecarregar o servidor, a análise usa "
-                 f"um modo leve, com até {padroes.max_quadros} quadros por vídeo e imagens menores na tela. Se a "
-                 "análise ficar lenta ou aparecer o aviso em inglês <i>Your app has been throttled</i>, é a plataforma "
-                 "reduzindo a CPU do app por alguns minutos por causa do uso intenso; o app continua funcionando e o "
-                 "aviso some sozinho. Modelos menores (v11n, v11s) evitam o problema.")
-        st.markdown(
-            '<div class="info-tooltip-linha"><span class="info-tooltip" tabindex="0" role="button" '
-            'aria-label="Sobre o modo leve da versão publicada" aria-describedby="dica-modo-leve">'
-            '<span class="info-tooltip-icone" aria-hidden="true">info</span>Modo leve'
-            f'<span class="info-tooltip-texto" role="tooltip" id="dica-modo-leve" lang="pt-BR">{texto}</span></span></div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown(f'<div class="taxa-acerto">{TAXA_DE_ACERTO}</div>', unsafe_allow_html=True)
+        col_dica, col_limpar = st.columns([1, 1], vertical_alignment="center")
+        with col_limpar:
+            if st.button("Limpar ocorrências", icon=":material/delete:", type="tertiary", width="stretch"):
+                st.session_state.historico_eventos = []
+                st.rerun()
+        with col_dica:
+            if padroes.modo_leve:
+                _dica_modo_leve(padroes)
 
-    st.divider()
-
-    # Controles de Execução
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
-    with col_btn1:
-        btn_iniciar = st.button("Iniciar Análise", type="primary", icon=":material/play_arrow:", width="stretch")
-    with col_btn2:
-        # Qualquer clique reexecuta o script e interrompe o laço em andamento
-        st.button("Parar", icon=":material/stop:", width="stretch")
-    with col_btn3:
-        btn_limpar_logs = st.button("Limpar Ocorrências", icon=":material/delete:", width="stretch")
-        if btn_limpar_logs:
-            st.session_state.historico_eventos = []
-            st.rerun()
+    with col_video:
+        area_video = st.empty()
+        area_grafico = st.empty()
 
     if not btn_iniciar:
+        with area_video.container():
+            st.markdown('<div class="estudio-vazio"><span class="icone">play_circle</span>'
+                        '<div>Escolha a fonte e clique em <b>Iniciar Análise</b>.<br>O vídeo anotado e o gráfico de '
+                        'postura e velocidade aparecem aqui.</div></div>', unsafe_allow_html=True)
         return
 
+    if tipo_fonte == FONTE_LINK:
+        try:
+            caminho_video, origem_rotulo = preparar_link(url_link, padroes)
+        except ErroLink as exc:
+            area_status.warning(str(exc))
+            return
+
     if caminho_video is None:
-        st.error("Por favor, selecione uma fonte de vídeo válida antes de iniciar.")
+        area_status.error("Selecione uma fonte de vídeo válida antes de iniciar.")
         return
 
     executar_com = modo_execucao in (MODO_COM, MODO_AB)
     executar_sem = modo_execucao in (MODO_SEM, MODO_AB)
+
+    def exibir_metricas(ritmo, pessoas, quedas_com, quedas_sem):
+        if modo_execucao == MODO_AB:
+            texto = f"{quedas_com} / {quedas_sem}"
+        else:
+            texto = str(quedas_com if executar_com else quedas_sem)
+        painel_metricas(area_metricas, ritmo, pessoas, texto)
 
     # Amostras do catálogo: uma análise idêntica já feita é reaproveitada na hora
     chave_cache = None
@@ -399,9 +503,12 @@ def render_estudio_inferencia():
             dados, video = guardado
             for linha in dados["eventos"]:
                 st.session_state.historico_eventos.append({**linha, "Timestamp": hora_local()})
-            st.success(f"Resultado reaproveitado de uma análise idêntica feita antes: {dados['numero_frame']} frames, "
-                       f"que levaram {dados['tempo_s']:.1f}s na primeira vez. As ocorrências foram adicionadas ao log.")
-            mostrar_resultado(dados, video, amostra_catalogo, modo_execucao)
+            status_ok(area_status, f"Resultado reaproveitado de uma análise idêntica: {dados['numero_frame']} "
+                                   f"quadros (a primeira análise levou {dados['tempo_s']:.0f} s).")
+            exibir_metricas(dados["numero_frame"] / max(0.001, dados["tempo_s"]), dados.get("pessoas", 0),
+                            dados["quedas_com"], dados["quedas_sem"])
+            mostrar_resultado(dados, video, amostra_catalogo, modo_execucao, area_video, area_grafico,
+                              area_resultado, limiar_ar, limiar_vel)
             return
 
     with st.spinner("Inicializando modelo e preparando pipeline..."):
@@ -411,45 +518,44 @@ def render_estudio_inferencia():
     cap = cv2.VideoCapture(caminho_video)
     if not cap.isOpened():
         if caminho_video == 0:
-            st.error("Não foi possível abrir uma câmera neste servidor. Isso é esperado na versão publicada "
-                     "(Streamlit Cloud), que roda em um servidor sem câmera. Escolha **Câmera do Navegador** "
-                     "para usar a câmera do seu dispositivo.")
+            area_status.error("Não foi possível abrir uma câmera neste servidor. Isso é esperado na versão publicada "
+                              "(Streamlit Cloud), que roda em um servidor sem câmera. Escolha **Câmera do Navegador** "
+                              "para usar a câmera do seu dispositivo.")
+        elif tipo_fonte == FONTE_LINK:
+            area_status.error("Não foi possível abrir o link. Confira se o endereço está correto, se a transmissão "
+                              "está no ar e se ela é acessível a partir deste servidor.")
         else:
-            st.error("Não foi possível abrir o vídeo selecionado. Verifique se o arquivo não está corrompido "
-                     "e se o formato é .mp4, .avi ou .mov.")
+            area_status.error("Não foi possível abrir o vídeo selecionado. Verifique se o arquivo não está corrompido "
+                              "e se o formato é .mp4, .avi ou .mov.")
         return
 
     fps_video = cap.get(cv2.CAP_PROP_FPS)
+    if not fps_video or fps_video <= 0 or fps_video > 240:
+        fps_video = 30.0  # transmissões nem sempre informam a taxa de quadros
     tracker = PersonTracker(fps_video=fps_video if corrigir_fps else None, passo_quadros=pular_quadros)
-    carencia_frames = round((fps_video if fps_video and fps_video > 0 else 30.0) * carencia_s)
+    carencia_frames = round(fps_video * carencia_s)
     agrupador_com = AgrupadorEventos(carencia_frames)
     agrupador_sem = AgrupadorEventos(carencia_frames)
 
+    max_quadros = padroes.max_quadros
+    if tipo_fonte in (FONTE_LINK, FONTE_SERVIDOR) and not max_quadros:
+        max_quadros = LIMITE_QUADROS_LINK
     total_quadros = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-    if padroes.max_quadros:
-        total_quadros = min(total_quadros, padroes.max_quadros) if total_quadros else padroes.max_quadros
+    if total_quadros <= 0:
+        total_quadros = 0  # transmissão ao vivo: sem total conhecido
+    if max_quadros:
+        total_quadros = min(total_quadros, max_quadros) if total_quadros else max_quadros
 
-    # Placeholders de visualização
-    status_placeholder = st.empty()
-    barra = st.progress(0.0, text="Preparando a análise...")
-    telemetria_col1, telemetria_col2, telemetria_col3 = st.columns(3)
-    m_fps = telemetria_col1.empty()
-    m_pessoas = telemetria_col2.empty()
-    m_quedas = telemetria_col3.empty()
-
-    # A prévia fica num espaço próprio, removido ao final para dar lugar ao vídeo anotado
-    area_previa = st.empty()
-    with area_previa.container():
-        st.caption("Prévia da análise, atualizada algumas vezes por segundo. Ao final, o vídeo anotado é exibido "
-                   "na velocidade real do vídeo original.")
+    barra.progress(0.0, text="Preparando a análise...")
+    with area_video.container():
         if modo_execucao == MODO_AB:
             col_v1, col_v2 = st.columns(2)
             view_left = col_v1.empty()
             view_right = col_v2.empty()
         else:
             view_main = st.empty()
-
-    alert_placeholder = st.empty()
+        st.caption("Prévia da análise, atualizada algumas vezes por segundo. Ao final, o vídeo anotado é exibido "
+                   "na velocidade real do vídeo original.")
 
     numero_frame = 0
     quedas_com = 0
@@ -460,7 +566,10 @@ def render_estudio_inferencia():
     limite_atingido = False
     quadros_analisados = 0
     eventos_gerados = []
+    serie = SerieMovimento()
+    pessoas = []
     ultima_atualizacao = 0.0
+    ultimo_grafico = 0.0
     largura_video = padroes.largura_exibicao * (2 if modo_execucao == MODO_AB else 1)
     anterior = st.session_state.get("pasta_video_resultado")
     if anterior:
@@ -468,7 +577,7 @@ def render_estudio_inferencia():
     pasta_video = tempfile.mkdtemp(prefix="dq_resultado_")
     st.session_state.pasta_video_resultado = pasta_video
     arquivo_video = Path(pasta_video) / "resultado.mp4"
-    gravador = criar_gravador(arquivo_video, (fps_video or 30.0) / pular_quadros, largura_max=largura_video)
+    gravador = criar_gravador(arquivo_video, fps_video / pular_quadros, largura_max=largura_video)
 
     def exibir(imagem):
         """Reduz a imagem enviada ao navegador; a análise continua na resolução escolhida."""
@@ -479,7 +588,7 @@ def render_estudio_inferencia():
 
     try:
         while cap.isOpened():
-            if padroes.max_quadros and numero_frame >= padroes.max_quadros:
+            if max_quadros and numero_frame >= max_quadros:
                 limite_atingido = True
                 break
             # Quadros pulados só avançam o vídeo (grab), sem decodificar nem rodar o YOLO
@@ -502,6 +611,7 @@ def render_estudio_inferencia():
             # Uma única inferência por frame alimenta os dois ramos heurísticos
             pessoas = processar_frame_detector(modelo, frame, tracker=tracker, confianca=conf_min)
             alertas_prox = analisar_interacoes([p["centroide"] for p in pessoas], distancia_minima=limiar_prox)
+            serie.registrar(numero_frame, pessoas)
 
             queda_no_frame = False
             if executar_com:
@@ -509,16 +619,18 @@ def render_estudio_inferencia():
                     frame, pessoas, alertas_prox,
                     modo_velocidade=True, limiar_queda=limiar_vel, limiar_ar=limiar_ar
                 )
-                quedas_com += registrar_eventos(eventos_com, agrupador_com, numero_frame,
-                                                "Com Velocidade", origem_rotulo, modelo_selecionado, eventos_gerados)
+                quedas_com += registrar_eventos(eventos_com, agrupador_com, numero_frame, "Com Velocidade",
+                                                origem_rotulo, modelo_selecionado, eventos_gerados, serie)
                 queda_no_frame = queda_no_frame or any(e["tipo"] == "QUEDA" for e in eventos_com)
             if executar_sem:
                 frame_sem, eventos_sem = desenhar_anotacoes(
                     frame, pessoas, alertas_prox,
                     modo_velocidade=False, limiar_queda=limiar_vel, limiar_ar=limiar_ar
                 )
-                quedas_sem += registrar_eventos(eventos_sem, agrupador_sem, numero_frame,
-                                                "Sem Velocidade", origem_rotulo, modelo_selecionado, eventos_gerados)
+                # No A/B, o gráfico marca as quedas da proposta (com velocidade)
+                quedas_sem += registrar_eventos(eventos_sem, agrupador_sem, numero_frame, "Sem Velocidade",
+                                                origem_rotulo, modelo_selecionado, eventos_gerados,
+                                                None if executar_com else serie)
                 if modo_execucao == MODO_SEM:
                     queda_no_frame = any(e["tipo"] == "QUEDA" for e in eventos_sem)
 
@@ -529,43 +641,40 @@ def render_estudio_inferencia():
                     gravador.escrever(frame_sem if modo_execucao == MODO_SEM else frame_com)
 
             if queda_no_frame:
-                alert_placeholder.error(f"**ALERTA CRÍTICO DE QUEDA DETECTADO NO FRAME {numero_frame}!**")
+                alert_placeholder.error(f"**ALERTA DE QUEDA NO QUADRO {numero_frame}!**")
 
-            # A prévia e a telemetria são atualizadas ~4 vezes por segundo: enviar cada quadro ao
-            # navegador custa CPU e não muda o resultado, que fica no vídeo anotado ao final
+            # A prévia e a telemetria são atualizadas ~4 vezes por segundo e o gráfico ~1 vez por segundo:
+            # enviar cada quadro ao navegador custa CPU e não muda o resultado
             agora = time.time()
             if agora - ultima_atualizacao >= 0.25:
                 ultima_atualizacao = agora
                 if modo_execucao == MODO_AB:
-                    view_left.image(exibir(frame_sem),
-                                    caption="Modelo Sem Velocidade (Muitos Falsos Positivos)", width="stretch")
-                    view_right.image(exibir(frame_com),
-                                     caption="Modelo Com Velocidade (Filtro Cinemático Ativo)", width="stretch")
+                    view_left.image(exibir(frame_sem), caption="Sem velocidade", width="stretch")
+                    view_right.image(exibir(frame_com), caption="Com velocidade", width="stretch")
                 elif modo_execucao == MODO_SEM:
                     view_main.image(exibir(frame_sem), caption=f"Modo Estático: Frame {numero_frame}", width="stretch")
                 else:
                     view_main.image(exibir(frame_com), caption=f"Modo Bimodal: Frame {numero_frame}", width="stretch")
 
-                decorrido = agora - inicio_tempo
-                ritmo = quadros_analisados / max(0.001, decorrido)
-                m_fps.metric("Quadros/s analisados", f"{ritmo:.1f}")
-                m_pessoas.metric("Pessoas em Cena", len(pessoas))
-                if modo_execucao == MODO_AB:
-                    m_quedas.metric("Quedas (Com / Sem Vel.)", f"{quedas_com} / {quedas_sem}")
-                else:
-                    m_quedas.metric("Quedas Registradas", quedas_com if executar_com else quedas_sem)
+                ritmo = quadros_analisados / max(0.001, agora - inicio_tempo)
+                exibir_metricas(ritmo, len(pessoas), quedas_com, quedas_sem)
                 if total_quadros:
                     restante = max(0.0, (total_quadros - numero_frame) / pular_quadros / max(ritmo, 0.01))
                     barra.progress(min(1.0, numero_frame / total_quadros),
-                                   text=f"Analisando o quadro {numero_frame} de {total_quadros} · cerca de "
-                                        f"{restante:.0f} s restantes")
+                                   text=f"Quadro {numero_frame} de {total_quadros} · cerca de {restante:.0f} s restantes")
+                else:
+                    barra.progress(0.0, text=f"Quadro {numero_frame} · transmissão ao vivo (clique em Parar)")
+            if agora - ultimo_grafico >= 1.0:
+                ultimo_grafico = agora
+                mostrar_grafico(area_grafico, serie.dados_principal(), limiar_ar, limiar_vel,
+                                chave=f"grafico_{numero_frame}")
 
             if padroes.pausa_s:
                 time.sleep(padroes.pausa_s)  # pausa cooperativa: deixa a CPU respirar entre quadros
 
     except Exception as exc:  # dependência ausente no servidor, vídeo corrompido etc.
         barra.empty()
-        status_placeholder.error(
+        area_status.error(
             f"A análise foi interrompida no frame {numero_frame} por um erro no processamento: "
             f"**{type(exc).__name__}: {exc}**. Se o erro citar um módulo ausente, a dependência precisa estar "
             "no `requirements.txt` do app publicado."
@@ -578,20 +687,20 @@ def render_estudio_inferencia():
     tempo_total = time.time() - inicio_tempo
     barra.empty()
     detalhe = "" if pular_quadros == 1 else f", {quadros_analisados} analisados (1 a cada {pular_quadros})"
-    status_placeholder.success(
-        f"Processamento concluído: {numero_frame} frames do vídeo{detalhe} em {tempo_total:.1f}s "
-        f"(FPS Médio: {quadros_analisados / max(0.001, tempo_total):.1f})."
-    )
+    status_ok(area_status, f"Concluído: {numero_frame} quadros{detalhe} em {tempo_total:.1f} s.")
+    exibir_metricas(quadros_analisados / max(0.001, tempo_total), len(pessoas), quedas_com, quedas_sem)
     if limite_atingido:
-        st.warning(f"A análise parou no limite de {padroes.max_quadros} quadros do modo leve da versão publicada. "
-                   "Para vídeos longos, rode o sistema localmente (veja o README).")
+        alert_placeholder.warning(f"A análise parou no limite de {max_quadros} quadros. Para vídeos longos, rode o "
+                                  "sistema localmente (veja o README).")
 
     dados = {"numero_frame": numero_frame, "tempo_s": tempo_total, "quedas_com": quedas_com,
-             "quedas_sem": quedas_sem, "concluido": concluido, "eventos": eventos_gerados}
+             "quedas_sem": quedas_sem, "concluido": concluido, "eventos": eventos_gerados,
+             "pessoas": len(pessoas), "serie": serie.dados_principal()}
     if concluido and chave_cache:
         try:
             salvar_resultado(chave_cache, dados, video)
         except OSError:
             pass  # sem espaço em disco, por exemplo: só não haverá reaproveitamento
     # Sem vídeo (falha na gravação), a prévia do último quadro continua na tela como reserva
-    mostrar_resultado(dados, video, amostra_catalogo, modo_execucao, area_video=area_previa if video else None)
+    mostrar_resultado(dados, video, amostra_catalogo, modo_execucao, area_video, area_grafico, area_resultado,
+                      limiar_ar, limiar_vel)

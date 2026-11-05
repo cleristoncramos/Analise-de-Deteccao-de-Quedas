@@ -3,31 +3,31 @@ from pathlib import Path
 
 import streamlit as st
 
-from pages_modules.navegacao import PAGINA_ACADEMICA, PAGINA_SISTEMA, ir_para
+from pages_modules.navegacao import PAGINA_ACADEMICA, abrir_estudio_com_exemplo, ir_para
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 VIDEO_APRESENTACAO = ASSETS / "video" / "apresentacao.mp4"
 CSS_LANDING = ASSETS / "landing.css"
 
 FAIXA_RESULTADOS = [
-    "<b>79</b> eventos avaliados no paradigma event-level",
-    "<b>YOLOv11s</b> com acurácia de 70,8% e F1 de 0,656",
-    "Falsos positivos de <b>22 para 6</b> com o limitador de velocidade",
-    "<b>100%</b> de precisão no UR Fall Detection Dataset",
-    "Três bases: escola simulada, <b>UR Fall</b> e vídeos públicos",
+    "Analise <b>vídeos próprios</b>, amostras do <b>UR Fall</b>, links do <b>YouTube</b> e transmissões ao vivo",
+    "Câmera do <b>navegador</b>: transforme o computador em um detector",
+    "Compare lado a lado a regra <b>sem</b> e <b>com velocidade</b>",
+    "Gráfico de <b>postura e velocidade</b> quadro a quadro",
+    "Vídeo anotado em <b>velocidade real</b> e relatório em CSV, Excel ou PDF",
     "Regra de queda: <b>AR &lt; 0,75</b> e <b>v ≥ 15 px/f</b>",
 ]
 
 NUMEROS = [
     # (alvo, antes, depois, ícone, cor, rótulo, legenda)
-    (79, "", "", "event_note", "#1f3a5f", "Eventos avaliados",
-     "Eventos contínuos analisados sob o paradigma event-level."),
-    (656, "0,", "", "insights", "#7b2d26", "F1-score · YOLOv11s",
-     "Melhor equilíbrio entre acurácia e estabilidade da caixa."),
-    (6, "", "", "notifications_off", "#9a7b2f", "Falsos positivos",
-     "Com o limitador de velocidade, contra 22 sem ele."),
-    (100, "", "%", "verified", "#4f6d5a", "Precisão · UR Fall",
-     "Nenhum alarme falso no benchmark UR Fall Detection."),
+    (5, "", "", "input", "#1f3a5f", "Fontes de vídeo",
+     "Amostra, upload, link ou transmissão, câmera do navegador e webcam local."),
+    (5, "", "", "neurology", "#7b2d26", "Modelos YOLOv11",
+     "Do Nano ao Extra Large; o Small é o padrão recomendado."),
+    (8, "", "", "video_library", "#9a7b2f", "Amostras com gabarito",
+     "Vídeos do UR Fall prontos para testar, com o resultado esperado."),
+    (2, "", "", "compare", "#4f6d5a", "Modos comparados",
+     "Regra estática e regra com velocidade, lado a lado no mesmo vídeo."),
 ]
 
 CARDS = [
@@ -39,14 +39,14 @@ CARDS = [
      "O YOLOv11 detecta cada pessoa; a razão de aspecto da caixa indica a postura e a velocidade do "
      "centroide confirma se a chegada ao chão foi brusca.",
      "AR &lt; 0,75 e v ≥ 15 px/f"),
-    ("monitoring", "#4f6d5a", "Os resultados", "Menos alarmes falsos",
-     "O limitador cinemático derrubou os falsos positivos e o YOLOv11s mostrou o melhor equilíbrio entre "
-     "acurácia e estabilidade da caixa.",
-     "FP: 22 → 6"),
-    ("view_in_ar", "#9a7b2f", "As limitações", "O eixo Z",
-     "Quedas na direção da câmera geram pouco deslocamento em pixels. Normalização de escala e estimativa "
-     "de pose são os próximos passos.",
-     "Trabalhos futuros"),
+    ("compare", "#4f6d5a", "A ferramenta", "Veja a diferença",
+     "No modo A/B, o mesmo vídeo é analisado com e sem o limitador de velocidade: quem apenas se deita não "
+     "gera alarme na proposta.",
+     "Lado a lado"),
+    ("fact_check", "#9a7b2f", "Transparência", "O sistema pode errar",
+     "Como todo detector, há falhas, sobretudo em quedas na direção da câmera. As amostras trazem o gabarito "
+     "para conferir cada resultado.",
+     "Gabarito em cada amostra"),
 ]
 
 ETAPAS_TUTORIAL = [
@@ -65,18 +65,16 @@ ETAPAS_TUTORIAL = [
 ]
 
 PRIMEIROS_PASSOS = [
-    ("Abra o sistema", "Clique em <b>Get Started</b>. A barra lateral lista os módulos e o ícone da casa "
-                       "volta para esta página."),
-    ("Conheça a pesquisa", "Em <b>Visão Geral e Artigo</b>, veja o resumo, a heurística bimodal e as bases "
-                           "de dados."),
-    ("Configure a análise", "No <b>Estúdio de Inferência</b>, escolha o modelo (YOLOv11s é o padrão) e o "
-                            "modo de análise."),
-    ("Envie um vídeo", "Faça o upload de um .mp4, .avi ou .mov, ou use uma amostra da pasta "
-                       "<code>videos/</code>, e inicie."),
+    ("Abra o Estúdio", "Clique em <b>Get Started</b>: o Estúdio abre com uma amostra do UR Fall pronta, no "
+                       "modo lado a lado."),
+    ("Rode o exemplo", "Clique em <b>Iniciar Análise</b> e acompanhe a prévia, o gráfico de postura e "
+                       "velocidade e o gabarito."),
+    ("Teste outros vídeos", "Escolha outra amostra, envie um vídeo seu ou cole um link do YouTube ou de uma "
+                            "transmissão."),
+    ("Use a câmera", "Em <b>Câmera do Navegador</b>, permita o acesso e veja a detecção ao vivo."),
+    ("Ajuste a análise", "Na barra lateral, troque o modelo YOLOv11 e o modo, ou calibre os limiares."),
     ("Audite as ocorrências", "Em <b>Auditoria e Logs</b>, filtre os eventos e exporte em CSV, Excel ou "
                               "PDF."),
-    ("Compare os modelos", "No <b>Dashboard Científico</b>, confira as tabelas e matrizes de confusão do "
-                           "artigo."),
 ]
 
 
@@ -88,8 +86,8 @@ def _carregar_css():
 def _botoes(prefixo: str, academico: bool = True):
     colunas = st.columns([1, 1.55] if academico else [1], gap="small")
     with colunas[0]:
-        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=ir_para,
-                  args=(PAGINA_SISTEMA,), width="stretch", key=f"{prefixo}_iniciar")
+        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=abrir_estudio_com_exemplo,
+                  width="stretch", key=f"{prefixo}_iniciar")
     if academico:
         with colunas[1]:
             st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para,
@@ -174,8 +172,8 @@ def _cabecalho_secao(numero: str, titulo: str, texto: str):
 
 
 def _cards():
-    _cabecalho_secao("01 · Visão geral", "A pesquisa em quatro pontos",
-                     "Do problema que motivou o trabalho às limitações que orientam os próximos passos.")
+    _cabecalho_secao("01 · Visão geral", "A ferramenta em quatro pontos",
+                     "Do problema que motivou o trabalho ao que você pode testar agora.")
     cards = "".join(f"""
         <div class="lp-card lp-revelar" style="--cor: {cor}">
             <div class="lp-icone">{icone}</div>

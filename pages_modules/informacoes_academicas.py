@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from pages_modules.navegacao import PAGINA_INICIAL, PAGINA_SISTEMA, ir_para
+from pages_modules.navegacao import PAGINA_INICIAL, abrir_estudio_com_exemplo, ir_para
 
 RAIZ = Path(__file__).resolve().parent.parent
 LOGOS = RAIZ / "assets" / "institucional"
@@ -65,8 +65,8 @@ def render_informacoes_academicas():
         st.button("Voltar à página inicial", icon=":material/home:", on_click=ir_para,
                   args=(PAGINA_INICIAL,), width="stretch", key="academico_voltar")
     with col_sistema:
-        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=ir_para,
-                  args=(PAGINA_SISTEMA,), width="stretch", key="academico_sistema")
+        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=abrir_estudio_com_exemplo,
+                  width="stretch", key="academico_sistema")
 
     st.title("Informações Acadêmicas")
     st.caption("Identificação do Trabalho de Conclusão de Curso que originou este sistema")

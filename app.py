@@ -7,9 +7,8 @@ from pages_modules.pagina_inicial import render_pagina_inicial
 from pages_modules.informacoes_academicas import render_informacoes_academicas
 from pages_modules.visao_geral import render_visao_geral
 from pages_modules.estudio_inferencia import render_estudio_inferencia
-from pages_modules.dashboard_metricas import render_dashboard_metricas
 from pages_modules.auditoria_logs import render_auditoria_logs
-from pages_modules.laboratorio_experimental import render_laboratorio_experimental
+from pages_modules.constantes import CHAVE_MODULO, MODULO_AUDITORIA, MODULO_ESTUDIO, MODULO_VISAO_GERAL
 from pages_modules.navegacao import PAGINA_ACADEMICA, PAGINA_INICIAL, PAGINA_SISTEMA, ocultar_sidebar, pagina_atual, ir_para
 
 from core.ambiente import configurar_torch, padroes_execucao
@@ -30,12 +29,11 @@ if os.path.isfile(css_path):
     with open(css_path, "r", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+# A demo destaca a ferramenta; os resultados do artigo (tabelas e trabalhos futuros) ficam no README
 MODULOS = {
-    "Visão Geral e Artigo": render_visao_geral,
-    "Estúdio de Inferência": render_estudio_inferencia,
-    "Dashboard Científico": render_dashboard_metricas,
-    "Auditoria e Logs": render_auditoria_logs,
-    "Laboratório Experimental": render_laboratorio_experimental,
+    MODULO_ESTUDIO: render_estudio_inferencia,
+    MODULO_AUDITORIA: render_auditoria_logs,
+    MODULO_VISAO_GERAL: render_visao_geral,
 }
 
 
@@ -51,7 +49,9 @@ def render_sistema():
         st.button("Sair para a página inicial", icon=":material/home:", on_click=ir_para,
                   args=(PAGINA_INICIAL,), width="stretch", key="botao_sair")
 
-        menu = st.radio("Módulos do sistema", list(MODULOS), index=0)
+        if st.session_state.get(CHAVE_MODULO) not in MODULOS:
+            st.session_state[CHAVE_MODULO] = MODULO_ESTUDIO
+        menu = st.radio("Módulos do sistema", list(MODULOS), key=CHAVE_MODULO)
 
     MODULOS[menu]()
 

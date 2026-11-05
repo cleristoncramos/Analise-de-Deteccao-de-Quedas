@@ -1,7 +1,7 @@
 import streamlit as st
 
 def render_visao_geral():
-    st.title("Sistema de Análise e Detecção de Quedas")
+    st.title("Sobre a pesquisa")
     st.caption("Prova de Conceito (PoC) para Prevenção de Acidentes em Ambientes Escolares baseada em Visão Computacional")
 
     # Header de Autoria e Instituição
@@ -14,19 +14,18 @@ def render_visao_geral():
         
         **Autor**: Brendo Alves Soares  
         **Orientadores**: Wener Borges de Sampaio e Martony Demes da Silva  
-        **Paradigma de Avaliação**: *Event-Level Evaluation* (79 eventos contínuos)
         """)
     with col2:
-        st.info("**Destaque Científico**\n\nO modelo **YOLOv11s** demonstrou ser o ponto de equilíbrio ideal (*sweet spot*) entre acurácia e estabilidade de centroide.")
+        st.caption("Os resultados completos da avaliação (tabelas por base de dados e por modelo) estão no artigo e "
+                   "no README do repositório. Aqui ficam o contexto, a heurística e as bases usadas.")
 
     st.divider()
 
     # Seções em abas organizadas
-    tab_resumo, tab_metodologia, tab_dados, tab_conclusoes = st.tabs([
+    tab_resumo, tab_metodologia, tab_dados = st.tabs([
         "Resumo do Trabalho",
         "Heurística Bimodal (AR + Velocidade)",
         "Base de Dados Heterogênea",
-        "Principais Conclusões"
     ])
 
     with tab_resumo:
@@ -39,14 +38,6 @@ def render_visao_geral():
         Este trabalho implementa uma **camada de monitoramento preditivo e ativo** baseada no **YOLOv11**, 
         focando estritamente na detecção da classe *pessoa* e na aplicação de heurísticas cinemáticas.
         """)
-
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.metric(label="Eventos Avaliados", value="79 eventos", help="Total de eventos contínuos analisados sob o paradigma Event-Level.")
-        with col_b:
-            st.metric(label="Melhor Modelo", value="YOLOv11s", help="Maior F1-score global (0.656) e Acurácia (70.89%).")
-        with col_c:
-            st.metric(label="Precisão UR Fall", value="100%", help="Zero falsos positivos com limitador cinemático ativado.")
 
     with tab_metodologia:
         st.subheader("Como Funciona a Heurística Bimodal?")
@@ -107,16 +98,3 @@ def render_visao_geral():
             - Cenas do mundo real extraídas da internet.
             - Teste de estresse com ruído, iluminação variável e perspectiva em profundidade (**Eixo Z**).
             """)
-
-    with tab_conclusoes:
-        st.subheader("Descobertas Fundamentais do Estudo")
-        st.markdown("""
-        1. **Eliminação da Fadiga de Alarme**:
-           - A heurística puramente postural (*Sem Velocidade*) gerou **22 falsos positivos**, tornando o sistema inviável na prática.
-           - A integração da velocidade escalar reduziu os falsos positivos para **6 no modelo YOLOv11m** e atingiu **100% de precisão no UR Fall**.
-        2. **O Fenômeno do Overfitting Espacial**:
-           - Modelos excessivamente complexos (*Large* e *Extra Large*) apresentaram oscilação contínua de *bounding box* sob oclusão, criando falsos vetores de velocidade que degradaram a precisão.
-           - O modelo **YOLOv11s** provou ser a arquitetura mais equilibrada para aplicação real.
-        3. **O Gargalo do Eixo Z e Trabalhos Futuros**:
-           - Quedas na linha de visão direta da câmera geram baixo deslocamento $2D$ em pixels, sugerindo a necessidade de normalização de escala e estimativa de pose tridimensional (*Pose Estimation*).
-        """)
