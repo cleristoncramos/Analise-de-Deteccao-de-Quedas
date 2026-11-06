@@ -114,6 +114,36 @@
     margin-bottom: 0.5rem;
 }
 
+/* Informações Acadêmicas: link discreto no canto direito do cabeçalho */
+.st-key-lp_nav_academico { align-items: flex-end; }
+.st-key-lp_nav_academico .stButton > button {
+    border: none !important;
+    background: transparent !important;
+    color: var(--tinta-suave) !important;
+    font-size: 0.85rem;
+    padding: 0.2rem 0 !important;
+    border-bottom: 1px solid transparent !important;
+}
+.st-key-lp_nav_academico .stButton > button:hover {
+    color: var(--marinho) !important;
+    border-bottom-color: var(--marinho) !important;
+}
+
+/* Get Started: a única chamada para a ação da página */
+.st-key-lp_iniciar { margin-top: 0.4rem; }
+.st-key-lp_iniciar .stButton > button {
+    padding: 0.75rem 2.1rem !important;
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 5px 5px 0 var(--vinho);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.st-key-lp_iniciar .stButton > button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 var(--vinho);
+}
+
 /* ---------- Hero ---------- */
 
 .lp-rotulo {
@@ -596,41 +626,6 @@
 .lp-passo:hover { background: var(--marinho); }
 .lp-passo:hover .n { color: var(--papel); -webkit-text-stroke: 0; }
 .lp-passo:hover h4, .lp-passo:hover p { color: var(--papel) !important; }
-
-/* ---------- Chamada final ---------- */
-
-.st-key-lp_cta {
-    background: var(--marinho);
-    border: 1px solid var(--borda);
-    padding: 2rem 2.2rem !important;
-    margin-top: 2.4rem;
-    box-shadow: 10px 10px 0 var(--vinho);
-}
-
-.st-key-lp_cta .lp-cta-titulo {
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--papel);
-    line-height: 1.15;
-}
-
-.st-key-lp_cta .lp-cta-texto {
-    color: #d5dbe3;
-    margin-top: 0.4rem;
-    max-width: 40rem;
-}
-
-.st-key-lp_cta .stButton > button {
-    background: var(--papel) !important;
-    color: var(--marinho) !important;
-    border-color: var(--papel) !important;
-}
-
-.st-key-lp_cta .stButton > button:hover {
-    background: #e3c77f !important;
-    border-color: #e3c77f !important;
-}
 
 /* ---------- Rodapé ---------- */
 

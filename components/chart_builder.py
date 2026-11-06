@@ -146,36 +146,76 @@ def criar_grafico_reducao_falsos_positivos(df_geral: pd.DataFrame):
     )
     return fig
 
+# Paleta do app (assets/style.css)
+_TINTA, _TINTA_SUAVE = "#1d1d1b", "#4a4a46"
+_MARINHO, _VINHO, _VERDE = "#1f3a5f", "#7b2d26", "#4f6d5a"
+_FONTE = "IBM Plex Sans, Helvetica, Arial, sans-serif"
+
+
+def _num(valor: float) -> str:
+    return f"{valor:g}".replace(".", ",")
+
+
 def criar_grafico_movimento(serie: Dict[str, Any], limiar_ar: float = 0.75, limiar_vel: float = 15.0,
-                            altura: int = 230):
+                            altura: int = 250):
     """
-    Razão de aspecto e velocidade da pessoa principal ao longo dos quadros, com os limiares
-    da heurística e a marcação dos quadros em que a queda foi registrada.
+    Razão de aspecto e velocidade da pessoa principal ao longo dos quadros, em dois painéis
+    alinhados: as faixas sombreadas marcam a região da regra (deitado; velocidade de queda),
+    as linhas tracejadas os limiares e as faixas verticais os quadros em que a queda foi registrada.
     """
     from plotly.subplots import make_subplots
 
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.12,
-                        subplot_titles=("Razão de aspecto (h/w)", "Velocidade do centroide (px/f)"))
-    fig.add_trace(go.Scatter(x=serie["frame"], y=serie["ar"], mode="lines", line=dict(color="#1f3a5f", width=2),
-                             name="AR", hovertemplate="Quadro %{x}<br>AR %{y:.2f}<extra></extra>"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=serie["frame"], y=serie["v"], mode="lines", line=dict(color="#4f6d5a", width=2),
-                             name="v", hovertemplate="Quadro %{x}<br>v %{y:.1f} px/f<extra></extra>"), row=2, col=1)
-    fig.add_hline(y=limiar_ar, line_dash="dash", line_color="#7b2d26", line_width=1, row=1, col=1,
-                  annotation_text=f"deitado < {limiar_ar:g}", annotation_font_size=10)
-    fig.add_hline(y=limiar_vel, line_dash="dash", line_color="#7b2d26", line_width=1, row=2, col=1,
-                  annotation_text=f"queda ≥ {limiar_vel:g}", annotation_font_size=10)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
+    fig.add_trace(go.Scatter(
+        x=serie["frame"], y=serie["ar"], mode="lines", name="Razão de aspecto",
+        line=dict(color=_MARINHO, width=1.8, shape="spline", smoothing=0.4),
+        fill="tozeroy", fillcolor="rgba(31, 58, 95, 0.07)",
+        hovertemplate="AR %{y:.2f}<extra></extra>"), row=1, col=1)
+    fig.add_trace(go.Scatter(
+        x=serie["frame"], y=serie["v"], mode="lines", name="Velocidade",
+        line=dict(color=_VERDE, width=1.8, shape="spline", smoothing=0.4),
+        fill="tozeroy", fillcolor="rgba(79, 109, 90, 0.08)",
+        hovertemplate="v %{y:.1f} px/quadro<extra></extra>"), row=2, col=1)
+
+    # Região em que cada ramo da regra é satisfeito, bem discreta, e o limiar tracejado com rótulo pequeno
+    v_max = max([limiar_vel * 1.25] + [x for x in serie["v"] if x is not None])
+    fig.add_hrect(y0=0, y1=limiar_ar, row=1, col=1, fillcolor=_VINHO, opacity=0.05, line_width=0, layer="below")
+    fig.add_hrect(y0=limiar_vel, y1=v_max * 1.05, row=2, col=1, fillcolor=_VINHO, opacity=0.05, line_width=0,
+                  layer="below")
+    for linha, valor, texto in ((1, limiar_ar, f"deitado &lt; {_num(limiar_ar)}"),
+                                (2, limiar_vel, f"queda ≥ {_num(limiar_vel)} px/quadro")):
+        fig.add_hline(y=valor, row=linha, col=1, line=dict(color=_VINHO, width=1, dash="dot"),
+                      annotation=dict(text=texto, font=dict(size=9.5, color=_VINHO), xanchor="right", x=1,
+                                      yanchor="bottom", showarrow=False))
+
+    # Quadros com queda registrada: faixa estreita e linha fina nos dois painéis, com rótulo no topo
+    quadros = [x for x in serie["frame"] if x is not None]
+    meia_faixa = max(0.6, (max(quadros) - min(quadros)) * 0.006) if quadros else 0.6
     for quadro in serie.get("quedas", []):
-        fig.add_vline(x=quadro, line_color="#7b2d26", line_width=2, opacity=0.6)
+        for linha in (1, 2):
+            fig.add_vrect(x0=quadro - meia_faixa, x1=quadro + meia_faixa, row=linha, col=1, fillcolor=_VINHO,
+                          opacity=0.14, line_width=0)
+            fig.add_vline(x=quadro, row=linha, col=1, line=dict(color=_VINHO, width=1.2))
+        fig.add_annotation(x=quadro, y=1, yref="y domain", xref="x", text="queda", showarrow=False,
+                           yanchor="bottom", font=dict(size=9.5, color=_VINHO), row=1, col=1)
+
     fig.update_layout(
         height=altura,
-        margin=dict(l=10, r=10, t=28, b=10),
+        margin=dict(l=8, r=8, t=18, b=6),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#1d1d1b", size=11),
+        font=dict(family=_FONTE, color=_TINTA_SUAVE, size=10.5),
+        separators=",.",
         showlegend=False,
+        hovermode="x unified",
+        hoverlabel=dict(bgcolor="#fbfaf7", bordercolor=_TINTA, font=dict(family=_FONTE, size=11, color=_TINTA)),
     )
-    fig.update_annotations(font_size=11)
-    fig.update_yaxes(gridcolor="rgba(29,29,27,0.12)", zeroline=False)
-    fig.update_xaxes(gridcolor="rgba(29,29,27,0.08)")
-    fig.update_xaxes(title_text="quadro", title_font_size=10, row=2, col=1)
+    eixo = dict(showline=True, linecolor="rgba(29, 29, 27, 0.45)", linewidth=1, ticks="outside", ticklen=3,
+                tickcolor="rgba(29, 29, 27, 0.45)", zeroline=False, title_font=dict(size=10, color=_TINTA))
+    fig.update_xaxes(**eixo, showgrid=False, showspikes=True, spikemode="across", spikethickness=1,
+                     spikecolor="rgba(29, 29, 27, 0.35)", spikedash="solid")
+    fig.update_yaxes(**eixo, gridcolor="rgba(29, 29, 27, 0.08)", griddash="dot", nticks=4, rangemode="tozero")
+    fig.update_yaxes(title_text="AR (h/w)", row=1, col=1)
+    fig.update_yaxes(title_text="v (px/quadro)", range=[0, v_max * 1.05], row=2, col=1)
+    fig.update_xaxes(title_text="Quadro", row=2, col=1)
     return fig

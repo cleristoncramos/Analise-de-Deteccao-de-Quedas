@@ -10,10 +10,11 @@ VIDEO_APRESENTACAO = ASSETS / "video" / "apresentacao.mp4"
 CSS_LANDING = ASSETS / "landing.css"
 
 FAIXA_RESULTADOS = [
-    "Analise <b>vídeos próprios</b>, amostras do <b>UR Fall</b>, links do <b>YouTube</b> e transmissões ao vivo",
+    "Analise <b>vídeos próprios</b>, os <b>70 vídeos do UR Fall</b>, links do <b>YouTube</b> e transmissões ao vivo",
     "Câmera do <b>navegador</b>: transforme o computador em um detector",
     "Compare lado a lado a regra <b>sem</b> e <b>com velocidade</b>",
     "Gráfico de <b>postura e velocidade</b> quadro a quadro",
+    "<b>Avaliação do conjunto</b>: métricas recalculadas a cada vídeo, ao lado do artigo",
     "Vídeo anotado em <b>velocidade real</b> e relatório em CSV, Excel ou PDF",
     "Regra de queda: <b>AR &lt; 0,75</b> e <b>v ≥ 15 px/f</b>",
 ]
@@ -24,8 +25,8 @@ NUMEROS = [
      "Amostra, upload, link ou transmissão, câmera do navegador e webcam local."),
     (5, "", "", "neurology", "#7b2d26", "Modelos YOLOv11",
      "Do Nano ao Extra Large; o Small é o padrão recomendado."),
-    (8, "", "", "video_library", "#9a7b2f", "Amostras com gabarito",
-     "Vídeos do UR Fall prontos para testar, com o resultado esperado."),
+    (70, "", "", "video_library", "#9a7b2f", "Vídeos com gabarito",
+     "O conjunto da câmera 0 do UR Fall, com 8 exemplos recomendados para começar."),
     (2, "", "", "compare", "#4f6d5a", "Modos comparados",
      "Regra estática e regra com velocidade, lado a lado no mesmo vídeo."),
 ]
@@ -44,9 +45,9 @@ CARDS = [
      "gera alarme na proposta.",
      "Lado a lado"),
     ("fact_check", "#9a7b2f", "Transparência", "O sistema pode errar",
-     "Como todo detector, há falhas, sobretudo em quedas na direção da câmera. As amostras trazem o gabarito "
-     "para conferir cada resultado.",
-     "Gabarito em cada amostra"),
+     "Como todo detector, há falhas, sobretudo em quedas na direção da câmera. Cada amostra traz o gabarito, e a "
+     "Avaliação do conjunto mostra as métricas nos 70 vídeos.",
+     "Gabarito e métricas abertas"),
 ]
 
 ETAPAS_TUTORIAL = [
@@ -69,10 +70,11 @@ PRIMEIROS_PASSOS = [
                        "modo lado a lado."),
     ("Rode o exemplo", "Clique em <b>Iniciar Análise</b> e acompanhe a prévia, o gráfico de postura e "
                        "velocidade e o gabarito."),
-    ("Teste outros vídeos", "Escolha outra amostra, envie um vídeo seu ou cole um link do YouTube ou de uma "
-                            "transmissão."),
-    ("Use a câmera", "Em <b>Câmera do Navegador</b>, permita o acesso e veja a detecção ao vivo."),
+    ("Teste outros vídeos", "Escolha outra amostra, envie um vídeo seu, cole um link do YouTube ou de uma "
+                            "transmissão, ou use a <b>Câmera do Navegador</b>."),
     ("Ajuste a análise", "Na barra lateral, troque o modelo YOLOv11 e o modo, ou calibre os limiares."),
+    ("Avalie o conjunto", "Em <b>Avaliação do conjunto</b>, clique em <b>Avaliar todos</b> e veja as métricas "
+                          "recalculadas a cada vídeo do UR Fall."),
     ("Audite as ocorrências", "Em <b>Auditoria e Logs</b>, filtre os eventos e exporte em CSV, Excel ou "
                               "PDF."),
 ]
@@ -83,20 +85,9 @@ def _carregar_css():
         st.markdown(f"<style>{CSS_LANDING.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
-def _botoes(prefixo: str, academico: bool = True):
-    colunas = st.columns([1, 1.55] if academico else [1], gap="small")
-    with colunas[0]:
-        st.button("Get Started", type="primary", icon=":material/arrow_forward:", on_click=abrir_estudio_com_exemplo,
-                  width="stretch", key=f"{prefixo}_iniciar")
-    if academico:
-        with colunas[1]:
-            st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para,
-                      args=(PAGINA_ACADEMICA,), width="stretch", key=f"{prefixo}_academico")
-
-
 def _barra_superior():
     with st.container(key="lp_nav"):
-        col_marca, col_botoes = st.columns([2.1, 1.9], vertical_alignment="center")
+        col_marca, col_botoes = st.columns([3, 1], vertical_alignment="center")
         with col_marca:
             st.markdown("""
             <div class="lp-marca">
@@ -107,8 +98,10 @@ def _barra_superior():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        with col_botoes:
-            _botoes("nav")
+        with col_botoes, st.container(key="lp_nav_academico"):
+            # Único acesso às informações acadêmicas: discreto, no canto do cabeçalho
+            st.button("Informações Acadêmicas", icon=":material/school:", on_click=ir_para, args=(PAGINA_ACADEMICA,),
+                      type="tertiary", key="nav_academico")
 
 
 def _hero():
@@ -126,9 +119,12 @@ def _hero():
         postura e velocidade para separar a queda real de quem apenas se senta ou se deita, reduzindo os alarmes
         falsos que inviabilizam a supervisão automatizada.</div>
         """, unsafe_allow_html=True)
-        _botoes("hero")
+        # Único Get Started da página, em destaque no hero
+        with st.container(key="lp_iniciar"):
+            st.button("Get Started", type="primary", icon=":material/arrow_forward:",
+                      on_click=abrir_estudio_com_exemplo, key="hero_iniciar")
         st.markdown("""
-        <div class="lp-selos lp-entrada lp-d4"><span>YOLOv11</span><span>Event-level evaluation</span>
+        <div class="lp-selos lp-entrada lp-d4"><span>YOLOv11</span><span>Avaliação por evento</span>
         <span>TCC · UFPI</span></div>
         """, unsafe_allow_html=True)
     with col_video:
@@ -208,19 +204,6 @@ def _primeiros_passos():
     st.markdown(f'<div class="lp-passos">{passos}</div>', unsafe_allow_html=True)
 
 
-def _chamada_final():
-    with st.container(key="lp_cta"):
-        col_texto, col_botoes = st.columns([1.45, 1.25], vertical_alignment="center")
-        with col_texto:
-            st.markdown("""
-            <div class="lp-cta-titulo">Pronto para analisar um vídeo?</div>
-            <div class="lp-cta-texto">Abra o Estúdio de Inferência, escolha o modelo e veja a heurística
-            funcionando quadro a quadro.</div>
-            """, unsafe_allow_html=True)
-        with col_botoes:
-            _botoes("cta")
-
-
 def render_pagina_inicial():
     _carregar_css()
     _barra_superior()
@@ -230,10 +213,9 @@ def render_pagina_inicial():
     _cards()
     _tutorial()
     _primeiros_passos()
-    _chamada_final()
     st.markdown("""
     <div class="lp-rodape">
         <span>Sistema de Análise e Detecção de Quedas · Trabalho de Conclusão de Curso · CSTGD · CEAD · UFPI</span>
-        <span>Informações sobre autoria e orientação na seção Informações Acadêmicas</span>
+        <span>Autoria e orientação em Informações Acadêmicas, no topo da página</span>
     </div>
     """, unsafe_allow_html=True)

@@ -67,5 +67,9 @@ def test_grafico_de_movimento():
 
     fig = criar_grafico_movimento({"frame": [1, 2, 3], "ar": [2.0, 1.0, 0.5], "v": [1.0, 18.0, 3.0],
                                    "quedas": [2]}, limiar_ar=0.75, limiar_vel=15.0)
-    assert len(fig.data) == 2
-    assert len(fig.layout.shapes) == 4  # dois limiares e a marcação da queda nos dois painéis
+    assert len(fig.data) == 2  # razão de aspecto e velocidade, em painéis alinhados
+    tracejadas = [f for f in fig.layout.shapes if f.type == "line" and f.line.dash == "dot"]
+    assert sorted(f.y0 for f in tracejadas) == [0.75, 15.0]  # os dois limiares
+    quedas = [f for f in fig.layout.shapes if f.type == "rect" and f.x0 is not None and f.x0 < 2 < f.x1]
+    assert len(quedas) == 2  # a queda do quadro 2 marcada nos dois painéis
+    assert fig.layout.yaxis2.title.text == "v (px/quadro)"

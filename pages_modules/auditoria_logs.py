@@ -92,17 +92,20 @@ def render_auditoria_logs():
         modo_sel = st.radio("Cenário", sorted(df_eventos["Modo"].unique()), horizontal=True)
         df_eventos = df_eventos[df_eventos["Modo"] == modo_sel]
 
-    # Métricas de Resumo
-    col_m1, col_m2, col_m3 = st.columns(3)
+    # Métricas de resumo: três cartões em grade, com a mesma altura e a mesma estrutura (rótulo, valor e nota)
     total_quedas = int((df_eventos["Tipo"] == "QUEDA").sum())
     total_prox = int((df_eventos["Tipo"] == "PROXIMIDADE").sum())
-
-    with col_m1:
-        st.metric("Total de Ocorrências", len(df_eventos))
-    with col_m2:
-        st.metric("Quedas Confirmadas", total_quedas, delta="Crítico" if total_quedas > 0 else "Normal", delta_color="inverse")
-    with col_m3:
-        st.metric("Alertas de Proximidade", total_prox)
+    situacao = ('<span class="aud-selo critico">Crítico</span>' if total_quedas
+                else '<span class="aud-selo normal">Normal</span>')
+    cartoes = [
+        ("Total de Ocorrências", len(df_eventos), "eventos registrados no cenário"),
+        ("Quedas Confirmadas", total_quedas, situacao),
+        ("Alertas de Proximidade", total_prox, "pessoas próximas demais"),
+    ]
+    st.markdown('<div class="aud-cartoes">' + "".join(
+        f'<div class="aud-cartao"><div class="rotulo">{rotulo}</div><div class="valor">{valor}</div>'
+        f'<div class="nota">{nota}</div></div>' for rotulo, valor, nota in cartoes) + "</div>",
+        unsafe_allow_html=True)
 
     st.divider()
 
